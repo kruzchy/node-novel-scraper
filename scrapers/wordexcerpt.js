@@ -34,30 +34,33 @@ module.exports = class WordexcerptScraper {
         }
     }
     async fetchSingleChapter() {
-        const res = await axios.get(this.currentChapterUrl);
+        const res =  await axios.get(this.currentChapterUrl);
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
         this.$('center').remove()
+        this.$('img').remove()
 
         const novelTextElement = this.$('.text-left')
         const text = htmlToText.fromString(novelTextElement.toString(), {
             wordwrap: 130
         });
-
+        if (!text.match(/chapter [\d.]+\s*:.*/i)) process.exit()
         const title = sanitize(text.match(/chapter [\d.]+\s*:.*/i)[0].replace(':', ' -'))
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
 
 
-        try {
-            fs.accessSync(chapterPath, fs.constants.F_OK)
-        } catch (e) {
-            fs.mkdirSync(chapterPath)
-        }
-        fs.writeFileSync(chapterFilePath, text)
-        console.log(`>>>Created file "${chapterFilePath}"`)
+
+        fs.access(chapterPath, fs.constants.F_OK, err => {
+            if (err)  fs.mkdir(chapterPath, err1 => {
+                if (err1) console.error(err1)
+            })
+        })
+        fs.writeFile(chapterFilePath, text, err => {
+            if (!err) console.log(`>>>Created file "${chapterFilePath}"`)
+        })
 
         //Check if there is a next chapter
         if (!this.$('.nav-next').length) {
