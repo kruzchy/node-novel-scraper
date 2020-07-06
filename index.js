@@ -12,6 +12,7 @@ const sanitize = require("sanitize-filename");
 const wordExcerptScraper = require('./scrapers/wordexcerpt')
 const novelTrenchScraper = require('./scrapers/noveltrench')
 const wuxiaWorldScraper = require('./scrapers/wuxiaworld')
+const novelFullScraper = require('./scrapers/novelfull')
 try {
     fs.accessSync('./data', fs.constants.F_OK)
 } catch (e) {
@@ -27,7 +28,8 @@ class App {
         this.scrapers = {
             wordexcerpt: wordExcerptScraper,
             noveltrench: novelTrenchScraper,
-            wuxiaworld: wuxiaWorldScraper
+            wuxiaworld: wuxiaWorldScraper,
+            novelfull: novelFullScraper
         }
         this.initScraper()
     }
