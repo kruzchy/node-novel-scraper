@@ -4,6 +4,7 @@ const htmlToText = require('html-to-text');
 const { prompt } = require('enquirer');
 const fs = require('fs');
 const sanitize = require("sanitize-filename");
+
 // // const url = 'https://wordexcerpt.com/series/i-dont-want-to-be-loved/';
 // const url = 'https://noveltrench.com/manga/the-favored-son-of-heaven/';
 // let nextChapterExists = true;

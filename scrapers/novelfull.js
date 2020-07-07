@@ -4,7 +4,12 @@ const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
+const Bottleneck = require('bottleneck')
 const interceptorId = rax.attach();
+const limiter = new Bottleneck({
+    minTime: 333,
+    maxConcurrent: 8
+});
 module.exports = class NovelFullScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
@@ -16,7 +21,7 @@ module.exports = class NovelFullScraper {
         this.currentChapterUrl = null;
         this.nextChapterExists = true;
         this.baseUrl = 'https://novelfull.com'
-        this.init()
+        this.chaptersUrlList = null;
     }
     async init() {
         const res = await axios.get(this.novelUrl).catch(e=>console.error(e));
@@ -30,11 +35,17 @@ module.exports = class NovelFullScraper {
         }
         this.firstChapterUrl = this.baseUrl + this.$('#list-chapter .row>div:first-child li:first-child a').attr('href');
         this.currentChapterUrl = this.firstChapterUrl;
+        this.chaptersUrlList = null;
+        await this.getChaptersList()
     }
     async fetchChapters() {
-        while (this.nextChapterExists) {
-            await this.fetchSingleChapter();
-        }
+        await limiter.schedule(()=>{
+            const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
+            return Promise.allSettled(fetchChapterPromises)
+        });
+        // while (this.nextChapterExists) {
+        //     await this.fetchSingleChapter();
+        // }
     }
 
     processHtml() {
@@ -67,8 +78,23 @@ module.exports = class NovelFullScraper {
         return title;
     }
 
-    async fetchSingleChapter() {
-        const res =  await axios.get(this.currentChapterUrl).catch(e=>console.error(e));
+    async getChaptersList() {
+        const chaptersList = [];
+        const lastPageNumber = this.$('.last a').attr('href').split('?page=')[1].split('&')[0]
+        const getPageUrl = (pageNumber)=>{
+            return this.baseUrl + this.$('.last a').attr('href').split('?')[0] + `?page=${pageNumber}&per-page=50`
+        };
+        for (let pageNum=1; pageNum <= lastPageNumber; pageNum++) {
+            const url = getPageUrl(pageNum)
+            const res = await axios.get(url);
+            const $ = cheerio.load(res.data);
+            $('.list-chapter li a').toArray().forEach(item => chaptersList.push(this.baseUrl + this.$(item).attr('href')))
+        }
+        this.chaptersUrlList = chaptersList;
+    }
+
+    async fetchSingleChapter(chapterUrl) {
+        const res =  await axios.get(chapterUrl).catch(e=>console.error(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
@@ -90,14 +116,14 @@ module.exports = class NovelFullScraper {
         }
 
         fs.writeFileSync(chapterFilePath, text)
-        console.log(`>>>Created file "${chapterFilePath}"`)
+        console.log(`>>>Created file "${title}.txt"`)
 
-        //Check if there is a next chapter
-        if (!this.$('#next_chap').attr('href')) {
-            this.nextChapterExists = false
-        } else {
-            this.currentChapterUrl = this.baseUrl + this.$('#next_chap').attr('href')
-        }
+        // //Check if there is a next chapter
+        // if (!this.$('#next_chap').attr('href')) {
+        //     this.nextChapterExists = false
+        // } else {
+        //     this.currentChapterUrl = this.baseUrl + this.$('#next_chap').attr('href')
+        // }
     }
 
 }

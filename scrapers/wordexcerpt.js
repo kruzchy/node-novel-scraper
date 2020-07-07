@@ -4,7 +4,13 @@ const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
+const Bottleneck = require('bottleneck')
 const interceptorId = rax.attach();
+const limiter = new Bottleneck({
+    minTime: 333,
+    maxConcurrent: 8
+});
+
 module.exports = class WordexcerptScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
@@ -15,6 +21,7 @@ module.exports = class WordexcerptScraper {
         this.firstChapterUrl = null;
         this.currentChapterUrl = null;
         this.nextChapterExists = true;
+        this.chaptersUrlList = null;
         this.init()
     }
     async init() {
@@ -29,11 +36,16 @@ module.exports = class WordexcerptScraper {
         }
         this.firstChapterUrl = this.$('.wp-manga-chapter:last-child a').attr('href');
         this.currentChapterUrl = this.firstChapterUrl;
+        this.chaptersUrlList = this.getChaptersList()
     }
     async fetchChapters() {
-        while (this.nextChapterExists) {
-            await this.fetchSingleChapter();
-        }
+        await limiter.schedule(()=>{
+            const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
+            return Promise.allSettled(fetchChapterPromises)
+        });
+        // while (this.nextChapterExists) {
+        //     await this.fetchSingleChapter();
+        // }
     }
 
     processHtml() {
@@ -55,8 +67,12 @@ module.exports = class WordexcerptScraper {
         return sanitize(text.match(/chapter [\d.]+\s*:.*/i)[0].replace(':', ' -'))
     }
 
-    async fetchSingleChapter() {
-        const res =  await axios.get(this.currentChapterUrl);
+    getChaptersList() {
+        return this.$('.wp-manga-chapter a').toArray().map(item => this.$(item).attr('href'))
+    }
+
+    async fetchSingleChapter(chapterUrl) {
+        const res =  await axios.get(chapterUrl);
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
@@ -78,14 +94,14 @@ module.exports = class WordexcerptScraper {
         }
 
         fs.writeFileSync(chapterFilePath, text)
-        console.log(`>>>Created file "${chapterFilePath}"`)
+        console.log(`>>>Created file "${title}.txt"`)
 
-        //Check if there is a next chapter
-        if (!this.$('.nav-next').length) {
-            this.nextChapterExists = false
-        } else {
-            this.currentChapterUrl = this.$('.nav-next a').attr('href')
-        }
+        // //Check if there is a next chapter
+        // if (!this.$('.nav-next').length) {
+        //     this.nextChapterExists = false
+        // } else {
+        //     this.currentChapterUrl = this.$('.nav-next a').attr('href')
+        // }
     }
 
 }
