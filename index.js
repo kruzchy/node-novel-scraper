@@ -3,17 +3,14 @@ const cheerio = require('cheerio');
 const htmlToText = require('html-to-text');
 const { prompt } = require('enquirer');
 const fs = require('fs');
-const sanitize = require("sanitize-filename");
 
-// // const url = 'https://wordexcerpt.com/series/i-dont-want-to-be-loved/';
-// const url = 'https://noveltrench.com/manga/the-favored-son-of-heaven/';
-// let nextChapterExists = true;
-// let chapterUrl;
-// let continued = false;
 const wordExcerptScraper = require('./scrapers/wordexcerpt')
 const novelTrenchScraper = require('./scrapers/noveltrench')
 const wuxiaWorldComScraper = require('./scrapers/wuxiaworld.com')
 const novelFullScraper = require('./scrapers/novelfull')
+const wuxiaWorldSiteScraper = require('./scrapers/wuxiaworld.site')
+const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
+
 try {
     fs.accessSync('./data', fs.constants.F_OK)
 } catch (e) {
@@ -24,12 +21,12 @@ class App {
     constructor(novelUrl) {
         this.scraper = null;
         this.novelUrl = novelUrl;
-        this.novelName = null;
-        this.firstChapterUrl = null;
         this.scrapers = {
             wordexcerpt: wordExcerptScraper,
             noveltrench: novelTrenchScraper,
             'wuxiaworld.com': wuxiaWorldComScraper,
+            'wuxiaworld.site': wuxiaWorldSiteScraper,
+            'readlightnovel.org': readLightNovelOrgScraper,
             novelfull: novelFullScraper
         }
         this.initScraper()

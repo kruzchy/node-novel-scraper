@@ -5,12 +5,22 @@ const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
 const Bottleneck = require('bottleneck')
+const cliProgress = require('cli-progress');
 const interceptorId = rax.attach();
 const limiter = new Bottleneck({
     minTime: 333,
     maxConcurrent: 8
 });
-
+const UserAgent = require('user-agents')
+const userAgent = new UserAgent();
+const axiosConfig = {
+    headers:{
+        'User-Agent':userAgent.toString()
+    }
+}
+const bar1 = new cliProgress.SingleBar({
+    format: 'Downloading {bar} {value}/{total} Chapters'
+}, cliProgress.Presets.shades_classic);
 module.exports = class novelTrenchScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
@@ -21,7 +31,7 @@ module.exports = class novelTrenchScraper {
         this.chaptersUrlList = null;
     }
     async init() {
-        const res = await axios.get(this.novelUrl);
+        const res = await axios.get(this.novelUrl, axiosConfig).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
         this.novelName = sanitize(this.$('h1').text().trim());
         this.novelPath = `${this.rootDirectory}/${this.novelName}`
@@ -34,9 +44,12 @@ module.exports = class novelTrenchScraper {
     }
     async fetchChapters() {
         await limiter.schedule(()=>{
+            console.log('>>>Fetching chapters')
             const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
+            bar1.start(fetchChapterPromises.length, 0)
             return Promise.allSettled(fetchChapterPromises)
         });
+        bar1.stop()
     }
 
     processHtml() {
@@ -51,8 +64,8 @@ module.exports = class novelTrenchScraper {
     checkIfExit(text) {
     }
 
-    getTitle(text) {
-        return sanitize(this.$('#chapter-heading').text().match(/chapter .*/i)[0])
+    getTitle() {
+        return sanitize(this.$('#chapter-heading').text().match(/chapter .*/i)[0].replace(/[:.]/, ' -'))
     }
 
     getChaptersList() {
@@ -60,7 +73,7 @@ module.exports = class novelTrenchScraper {
     }
 
     async fetchSingleChapter(chapterUrl) {
-        const res =  await axios.get(chapterUrl);
+        const res =  await axios.get(chapterUrl, axiosConfig).catch(e=>console.log(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
@@ -68,7 +81,7 @@ module.exports = class novelTrenchScraper {
 
         const novelTextElement = this.$('.text-left')
         const text = this.getText(novelTextElement)
-        const title = this.getTitle(text)
+        const title = this.getTitle()
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
@@ -80,8 +93,8 @@ module.exports = class novelTrenchScraper {
             fs.mkdirSync(chapterPath)
         }
         fs.writeFileSync(chapterFilePath, text)
-        console.log(`>>>Created file "${title}.txt"`)
-
+        bar1.increment()
+        // console.log(`>>>Created file "${title}.txt"`)
 
     }
 

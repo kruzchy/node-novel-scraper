@@ -21,82 +21,59 @@ const axiosConfig = {
 const bar1 = new cliProgress.SingleBar({
     format: 'Downloading {bar} {value}/{total} Chapters'
 }, cliProgress.Presets.shades_classic);
-module.exports = class NovelFullScraper {
+module.exports = class ReadLightNovelOrgScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
         this.novelUrl = novelUrl;
         this.$ = null;
         this.novelName = null;
         this.novelPath = null;
-        this.baseUrl = 'https://novelfull.com'
         this.chaptersUrlList = null;
+        this.bar = null;
     }
     async init() {
         const res = await axios.get(this.novelUrl, axiosConfig).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
-        this.novelName = sanitize(this.$('h3.title').text().trim());
+        this.novelName = sanitize(this.$('h1').text().trim());
         this.novelPath = `${this.rootDirectory}/${this.novelName}`
         try {
             fs.accessSync(this.novelPath, fs.constants.F_OK)
         } catch (e) {
             fs.mkdirSync(this.novelPath)
         }
-        this.chaptersUrlList = null;
-        await this.getChaptersList()
+        this.chaptersUrlList = this.getChaptersList()
     }
     async fetchChapters() {
         await limiter.schedule(()=>{
             console.log('>>>Fetching chapters')
             const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
+            // this.bar = new ProgressBar('>>>Downloading [:bar] | :current/:total Chapters', {total: fetchChapterPromises.length, width:20})
             bar1.start(fetchChapterPromises.length, 0)
             return Promise.allSettled(fetchChapterPromises)
         });
         bar1.stop()
+
     }
 
     processHtml() {
-
+        this.$('.trinity-player-iframe-wrapper, small, center').remove()
     }
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
             wordwrap: 130
-        })
-            .replace(/(\n|.)*editor:.*/i, '')
-            .replace(/if you find any errors(.|\s)*/i, '')
-            .trim();
+        });
     }
 
     checkIfExit(text) {
-
     }
 
     getTitle(text) {
-        const titleMatch = text.match(/(volume .* )?chapter [\d.]+.*/i)
-        let title;
-        if (!titleMatch) {
-            title = this.$('.chapter-text').text()
-        } else {
-            title = sanitize(titleMatch[0]
-                .replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
-                .replace(/[:.]/g, ' -'))
-        }
-        return title;
+        return sanitize(text.match(/chapter [\d.]+/i)[0].replace(/[:.]/, ' -'))
     }
 
-    async getChaptersList() {
-        const chaptersList = [];
-        const lastPageNumber = this.$('.last a').attr('href').split('?page=')[1].split('&')[0]
-        const getPageUrl = (pageNumber)=>{
-            return this.baseUrl + this.$('.last a').attr('href').split('?')[0] + `?page=${pageNumber}&per-page=50`
-        };
-        for (let pageNum=1; pageNum <= lastPageNumber; pageNum++) {
-            const url = getPageUrl(pageNum)
-            const res = await axios.get(url);
-            const $ = cheerio.load(res.data);
-            $('.list-chapter li a').toArray().forEach(item => chaptersList.push(this.baseUrl + this.$(item).attr('href')))
-        }
-        this.chaptersUrlList = chaptersList;
+    getChaptersList() {
+        return this.$('.chapter-chs li a').toArray().map(item => this.$(item).attr('href'))
     }
 
     async fetchSingleChapter(chapterUrl) {
@@ -104,12 +81,12 @@ module.exports = class NovelFullScraper {
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
+        this.processHtml()
 
-        const novelTextElement = this.$('#chapter-content')
-        const text = this.getText(novelTextElement)
-        const title = this.getTitle(text)
+        const novelTextElement = this.$('.desc');
+        const text = this.getText(novelTextElement);
 
-
+        const title = this.getTitle(text);
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
@@ -123,6 +100,7 @@ module.exports = class NovelFullScraper {
 
         fs.writeFileSync(chapterFilePath, text)
         bar1.increment()
+        // this.bar.tick();
         // console.log(`>>>Created file "${title}.txt"`)
 
     }
