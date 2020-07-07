@@ -6,10 +6,14 @@ const fs = require('fs');
 
 const wordExcerptScraper = require('./scrapers/wordexcerpt')
 const novelTrenchScraper = require('./scrapers/noveltrench')
-const wuxiaWorldComScraper = require('./scrapers/wuxiaworld.com')
 const novelFullScraper = require('./scrapers/novelfull')
 const wuxiaWorldSiteScraper = require('./scrapers/wuxiaworld.site')
 const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
+const webNovelOnlineScraper = require('./scrapers/webnovelonline')
+//CLOUDFARE. SCRAPING IS HARD
+const wuxiaWorldComScraper = require('./scrapers/wuxiaworld.com')
+//Rate limited only 15 requests per minute
+const lightNovelWorldScraper = require('./scrapers/lightnovelworld')
 
 try {
     fs.accessSync('./data', fs.constants.F_OK)
@@ -27,6 +31,8 @@ class App {
             'wuxiaworld.com': wuxiaWorldComScraper,
             'wuxiaworld.site': wuxiaWorldSiteScraper,
             'readlightnovel.org': readLightNovelOrgScraper,
+            lightnovelworld: lightNovelWorldScraper,
+            webnovelonline: webNovelOnlineScraper,
             novelfull: novelFullScraper
         }
         this.initScraper()
