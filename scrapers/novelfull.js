@@ -62,6 +62,10 @@ module.exports = class NovelFullScraper {
             wordwrap: 130
         })
             .replace(/(\n|.)*editor:.*/i, '')
+            .replace(/(\n|.)*editor group:.*/i, '')
+            .replace(/(\n|.)*translator:.*/i, '')
+            .replace(/(\n|.)*author:.*/i, '')
+            .replace(/(\n|.)*author:.*/i, '')
             .replace(/if you find any errors(.|\s)*/i, '')
             .trim();
     }
