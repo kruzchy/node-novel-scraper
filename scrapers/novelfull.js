@@ -17,9 +17,6 @@ module.exports = class NovelFullScraper {
         this.$ = null;
         this.novelName = null;
         this.novelPath = null;
-        this.firstChapterUrl = null;
-        this.currentChapterUrl = null;
-        this.nextChapterExists = true;
         this.baseUrl = 'https://novelfull.com'
         this.chaptersUrlList = null;
     }
@@ -33,8 +30,6 @@ module.exports = class NovelFullScraper {
         } catch (e) {
             fs.mkdirSync(this.novelPath)
         }
-        this.firstChapterUrl = this.baseUrl + this.$('#list-chapter .row>div:first-child li:first-child a').attr('href');
-        this.currentChapterUrl = this.firstChapterUrl;
         this.chaptersUrlList = null;
         await this.getChaptersList()
     }
@@ -43,9 +38,6 @@ module.exports = class NovelFullScraper {
             const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
             return Promise.allSettled(fetchChapterPromises)
         });
-        // while (this.nextChapterExists) {
-        //     await this.fetchSingleChapter();
-        // }
     }
 
     processHtml() {
@@ -118,12 +110,6 @@ module.exports = class NovelFullScraper {
         fs.writeFileSync(chapterFilePath, text)
         console.log(`>>>Created file "${title}.txt"`)
 
-        // //Check if there is a next chapter
-        // if (!this.$('#next_chap').attr('href')) {
-        //     this.nextChapterExists = false
-        // } else {
-        //     this.currentChapterUrl = this.baseUrl + this.$('#next_chap').attr('href')
-        // }
     }
 
 }
