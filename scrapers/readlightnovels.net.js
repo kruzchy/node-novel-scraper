@@ -21,7 +21,7 @@ const axiosConfig = {
 const bar1 = new cliProgress.SingleBar({
     format: 'Downloading {bar} {value}/{total} Chapters'
 }, cliProgress.Presets.shades_classic);
-module.exports = class NovelFullScraper {
+module.exports = class ReadLightNovelsNetScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
         this.novelUrl = novelUrl;
@@ -85,15 +85,22 @@ module.exports = class NovelFullScraper {
 
     async getChaptersList() {
         const chaptersList = [];
-        const lastPageNumber = this.$('.last a').attr('href').split('?page=')[1].split('&')[0]
-        const getPageUrl = (pageNumber)=>{
-            return this.baseUrl + this.$('.last a').attr('href').split('?')[0] + `?page=${pageNumber}&per-page=50`
-        };
+        const lastPageNumber = this.$('.pagination li:nth-last-child(2) a').attr('href').split('/').pop()
+        // const getPageUrl = (pageNumber)=>{
+        //     return this.$('.pagination li:nth-last-child(2) a').attr('href').split('page/')[0] + `page/${pageNumber}`
+        // };
+        const chapterId = this.$('#id_post').attr('value')
         for (let pageNum=1; pageNum <= lastPageNumber; pageNum++) {
-            const url = getPageUrl(pageNum)
-            const res = await axios.get(url, axiosConfig);
-            const $ = cheerio.load(res.data);
-            $('.list-chapter li a').toArray().forEach(item => chaptersList.push(this.baseUrl + $(item).attr('href')))
+            const url = 'https://readlightnovels.net/wp-admin/admin-ajax.php'
+            const axiosData = {
+                action: 'tw_ajax',
+                type: 'pagination',
+                id: chapterId,
+                page: pageNum
+            }
+            const res = await axios.post(url, axiosData,axiosConfig).catch(e=>console.error(e));
+            const $ = cheerio.load(res.data['list_chap']);
+            $('.list-chapter li a').toArray().forEach(item => chaptersList.push($(item).attr('href')))
         }
         this.chaptersUrlList = chaptersList;
     }
