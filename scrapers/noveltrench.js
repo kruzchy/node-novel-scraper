@@ -1,8 +1,10 @@
 const cheerio = require('cheerio');
 const axios = require('axios')
+const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
+const interceptorId = rax.attach();
 module.exports = class novelTrenchScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
@@ -33,32 +35,45 @@ module.exports = class novelTrenchScraper {
             await this.fetchSingleChapter();
         }
     }
+
+    processHtml() {
+    }
+
+    getText(textElement) {
+        return htmlToText.fromString(textElement.toString(), {
+            wordwrap: 130
+        });
+    }
+
+    checkIfExit(text) {
+    }
+
+    getTitle(text) {
+        return sanitize(this.$('#chapter-heading').text().match(/chapter .*/i)[0])
+    }
+
     async fetchSingleChapter() {
         const res =  await axios.get(this.currentChapterUrl);
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
-        // this.$('center').remove()
-        // this.$('img').remove()
+
 
         const novelTextElement = this.$('.text-left')
-        const text = htmlToText.fromString(novelTextElement.toString(), {
-            wordwrap: 130
-        });
-        const title = sanitize(this.$('#chapter-heading').text())
+        const text = this.getText(novelTextElement)
+        const title = this.getTitle(text)
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
 
 
-        fs.access(chapterPath, fs.constants.F_OK, err => {
-            if (err)  fs.mkdir(chapterPath, err1 => {
-                if (err1) console.error(err1)
-            })
-        })
-        fs.writeFile(chapterFilePath, text, err => {
-            if (!err) console.log(`>>>Created file "${chapterFilePath}"`)
-        })
+        try {
+            fs.accessSync(chapterPath, fs.constants.F_OK)
+        } catch (e) {
+            fs.mkdirSync(chapterPath)
+        }
+        fs.writeFileSync(chapterFilePath, text)
+        console.log(`>>>Created file "${chapterFilePath}"`)
 
         //Check if there is a next chapter
         if (!this.$('.nav-next').length && !this.$('.next_page').length) {

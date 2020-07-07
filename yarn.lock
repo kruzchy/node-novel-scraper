@@ -471,6 +471,11 @@ readable-stream@^3.1.1, readable-stream@^3.4.0:
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
 
+retry-axios@^2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/retry-axios/-/retry-axios-2.2.1.tgz#da3cb93436fa2f931332d4e6a9927bd6cfa618c8"
+  integrity sha512-vSZzu29W48+/mVPOq+gwKe+qYWcppiKODXi4FN9q0iN+4s2z10/l1LDS4Ju4vReTyuvKOoqmHqY0rOAmuFjI/Q==
+
 rimraf@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-3.0.2.tgz#f1a5402ba6220ad52cc1282bac1ae3aa49fd061a"

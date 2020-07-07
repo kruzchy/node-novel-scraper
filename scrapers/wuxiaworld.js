@@ -61,14 +61,13 @@ module.exports = class WuxiaWorldScraper {
 
 
 
-        fs.access(chapterPath, fs.constants.F_OK, err => {
-            if (err)  fs.mkdir(chapterPath, err1 => {
-                if (err1) console.error(err1)
-            })
-        })
-        fs.writeFile(chapterFilePath, text, err => {
-            if (!err) console.log(`>>>Created file "${chapterFilePath}"`)
-        })
+        try {
+            fs.accessSync(chapterPath, fs.constants.F_OK)
+        } catch (e) {
+            fs.mkdirSync(chapterPath)
+        }
+        fs.writeFileSync(chapterFilePath, text)
+        console.log(`>>>Created file "${chapterFilePath}"`)
 
         //Check if there is a next chapter
         if (!this.$('.nav-next').length) {

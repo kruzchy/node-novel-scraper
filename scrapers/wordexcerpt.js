@@ -1,8 +1,10 @@
 const cheerio = require('cheerio');
 const axios = require('axios')
+const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
+const interceptorId = rax.attach();
 module.exports = class WordexcerptScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
@@ -33,34 +35,50 @@ module.exports = class WordexcerptScraper {
             await this.fetchSingleChapter();
         }
     }
+
+    processHtml() {
+        this.$('center').remove()
+        this.$('img').remove()
+    }
+
+    getText(textElement) {
+        return htmlToText.fromString(textElement.toString(), {
+            wordwrap: 130
+        });
+    }
+
+    checkIfExit(text) {
+        if (!text.match(/chapter [\d.]+\s*:.*/i)) process.exit()
+    }
+
+    getTitle(text) {
+        return sanitize(text.match(/chapter [\d.]+\s*:.*/i)[0].replace(':', ' -'))
+    }
+
     async fetchSingleChapter() {
         const res =  await axios.get(this.currentChapterUrl);
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
-        this.$('center').remove()
-        this.$('img').remove()
+        this.processHtml()
 
-        const novelTextElement = this.$('.text-left')
-        const text = htmlToText.fromString(novelTextElement.toString(), {
-            wordwrap: 130
-        });
-        if (!text.match(/chapter [\d.]+\s*:.*/i)) process.exit()
-        const title = sanitize(text.match(/chapter [\d.]+\s*:.*/i)[0].replace(':', ' -'))
+        const novelTextElement = this.$('.text-left');
+        const text = this.getText(novelTextElement);
+        this.checkIfExit(text)
+        const title = this.getTitle(text);
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
 
 
+        try {
+            fs.accessSync(chapterPath, fs.constants.F_OK)
+        } catch (e) {
+            fs.mkdirSync(chapterPath)
+        }
 
-        fs.access(chapterPath, fs.constants.F_OK, err => {
-            if (err)  fs.mkdir(chapterPath, err1 => {
-                if (err1) console.error(err1)
-            })
-        })
-        fs.writeFile(chapterFilePath, text, err => {
-            if (!err) console.log(`>>>Created file "${chapterFilePath}"`)
-        })
+        fs.writeFileSync(chapterFilePath, text)
+        console.log(`>>>Created file "${chapterFilePath}"`)
 
         //Check if there is a next chapter
         if (!this.$('.nav-next').length) {

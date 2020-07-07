@@ -1,8 +1,10 @@
 const cheerio = require('cheerio');
 const axios = require('axios')
+const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
+const interceptorId = rax.attach();
 module.exports = class NovelFullScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
@@ -17,7 +19,7 @@ module.exports = class NovelFullScraper {
         this.init()
     }
     async init() {
-        const res = await axios.get(this.novelUrl);
+        const res = await axios.get(this.novelUrl).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
         this.novelName = sanitize(this.$('h3.title').text().trim());
         this.novelPath = `${this.rootDirectory}/${this.novelName}`
@@ -34,32 +36,61 @@ module.exports = class NovelFullScraper {
             await this.fetchSingleChapter();
         }
     }
+
+    processHtml() {
+
+    }
+
+    getText(textElement) {
+        return htmlToText.fromString(textElement.toString(), {
+            wordwrap: 130
+        })
+            .replace(/(\n|.)*editor:.*/i, '')
+            .replace(/if you find any errors(.|\s)*/i, '')
+            .trim();
+    }
+
+    checkIfExit(text) {
+
+    }
+
+    getTitle(text) {
+        const titleMatch = text.match(/(volume .* )?chapter [\d.]+.*/i)
+        let title;
+        if (!titleMatch) {
+            title = this.$('.chapter-text').text()
+        } else {
+            title = sanitize(titleMatch[0]
+                .replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
+                .replace(/[:.]/g, ' -'))
+        }
+        return title;
+    }
+
     async fetchSingleChapter() {
-        const res =  await axios.get(this.currentChapterUrl);
+        const res =  await axios.get(this.currentChapterUrl).catch(e=>console.error(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
 
         const novelTextElement = this.$('#chapter-content')
-        const text = htmlToText.fromString(novelTextElement.toString(), {
-            wordwrap: 130
-        });
-        if (!text.match(/chapter [\d.]+.*/i)) process.exit()
-        const title = sanitize(text.match(/chapter [\d.]+.*/i)[0].replace(':', ' -'))
+        const text = this.getText(novelTextElement)
+        const title = this.getTitle(text)
+
+
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
 
 
+        try {
+            fs.accessSync(chapterPath, fs.constants.F_OK)
+        } catch (e) {
+            fs.mkdirSync(chapterPath)
+        }
 
-        fs.access(chapterPath, fs.constants.F_OK, err => {
-            if (err)  fs.mkdir(chapterPath, err1 => {
-                if (err1) console.error(err1)
-            })
-        })
-        fs.writeFile(chapterFilePath, text, err => {
-            if (!err) console.log(`>>>Created file "${chapterFilePath}"`)
-        })
+        fs.writeFileSync(chapterFilePath, text)
+        console.log(`>>>Created file "${chapterFilePath}"`)
 
         //Check if there is a next chapter
         if (!this.$('#next_chap').attr('href')) {
