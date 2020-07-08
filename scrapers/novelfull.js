@@ -8,7 +8,7 @@ const Bottleneck = require('bottleneck')
 const cliProgress = require('cli-progress');
 const interceptorId = rax.attach();
 const limiter = new Bottleneck({
-    minTime: 100,
+    minTime: 333,
     maxConcurrent: 8
 });
 const UserAgent = require('user-agents')
