@@ -8,7 +8,7 @@ const Bottleneck = require('bottleneck')
 const cliProgress = require('cli-progress');
 const interceptorId = rax.attach();
 const limiter = new Bottleneck({
-    minTime: 333,
+    minTime: 100,
     maxConcurrent: 8
 });
 const UserAgent = require('user-agents')
@@ -61,13 +61,13 @@ module.exports = class NovelFullScraper {
         return htmlToText.fromString(textElement.toString(), {
             wordwrap: 130
         })
-            .replace(/(\n|.)*editor:.*/i, '')
-            .replace(/(\n|.)*editor group:.*/i, '')
-            .replace(/(\n|.)*translator:.*/i, '')
-            .replace(/(\n|.)*author:.*/i, '')
-            .replace(/(\n|.)*author:.*/i, '')
             .replace(/if you find any errors(.|\s)*/i, '')
             .trim();
+    // .replace(/(\n|.)*editor group:.*/i, '')
+    // .replace(/(\n|.)*editor:.*/i, '')
+    //         .replace(/(\n|.)*translator:.*/i, '')
+    //         .replace(/(\n|.)*author:.*/i, '')
+    //         .replace(/(\n|.)*author:.*/i, '')
     }
 
     checkIfExit(text) {
