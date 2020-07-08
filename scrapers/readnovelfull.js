@@ -74,10 +74,10 @@ module.exports = class ReadNovelFullScraper {
         if (!titleMatch) {
             title = this.$('.chr-text').text()
         } else {
-            title = sanitize(titleMatch[0]
-                .replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
-                .replace(/[:.]/g, ' -'))
+            title = sanitize(titleMatch[0])
         }
+        title = sanitize(title.replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
+            .replace(/[:.]/g, ' -'))
         return title;
     }
 
