@@ -38,17 +38,24 @@ const fs = require('fs');
 //     });
 //     console.log(text)
 // }
-const start = ()=>{
-    const files = fs.readdirSync('E:\\WebstormProjects\\novel-scraper\\data\\My Youth Began With Him');
-    const nums = files.map(file=>{
-        const matchObject = file.match(/chapter\s+(\d+)/i)
-        if (matchObject) {
-            return matchObject[1]
-        } else return null;
-    })
-    for (let i=1; i<=3318; i++) {
-        let result = nums.find(number=>number==i);
-        if (!result) console.log(`>>number ${i} not found`)
-    }
+// const start = ()=>{
+//     const files = fs.readdirSync('E:\\WebstormProjects\\novel-scraper\\data\\My Youth Began With Him');
+//     const nums = files.map(file=>{
+//         const matchObject = file.match(/chapter\s+(\d+)/i)
+//         if (matchObject) {
+//             return matchObject[1]
+//         } else return null;
+//     })
+//     for (let i=1; i<=3318; i++) {
+//         let result = nums.find(number=>number==i);
+//         if (!result) console.log(`>>number ${i} not found`)
+//     }
+// };
+
+const start = async ()=>{
+    const res = await axios.get('https://wordexcerpt.com/series/remarried-empress/chapter-174/');
+    const $ = cheerio.load(res.data);
+    const data = $('.breadcrumb .active').text().trim()
+    console.log(data.match(/an announcement/i))
 };
 start();
