@@ -73,7 +73,7 @@ module.exports = class novelTrenchScraper {
     }
 
     getTitle() {
-        return sanitize(this.$('.breadcrumb .active').text().trim()
+        return sanitize(this.$(this.$('.breadcrumb .active').toArray()[0]).text().trim()
             .replace(/[:.]/, ' -'))
             .replace(/^\w/, (c) => c.toUpperCase())
     }
