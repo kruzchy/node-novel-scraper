@@ -76,7 +76,7 @@ module.exports = class WebNovelOnlineScraper {
     }
 
     getTitle() {
-        return sanitize(this.$('.chapter-info h3').text())
+        return sanitize(this.$('.chapter-info h3').text().trim())
     }
 
     getChaptersList() {
@@ -84,7 +84,7 @@ module.exports = class WebNovelOnlineScraper {
     }
 
     async fetchSingleChapter(chapterUrl) {
-        const res =  await axios.get(chapterUrl, axiosConfig).catch(e=>console.log(e));
+        const res =  await axios.get(chapterUrl, getNewAxiosConfig()).catch(e=>console.log(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
