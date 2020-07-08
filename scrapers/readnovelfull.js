@@ -48,7 +48,7 @@ module.exports = class ReadNovelFullScraper {
             console.log('>>>Fetching chapters')
             const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
             bar1.start(fetchChapterPromises.length, 0)
-            return Promise.allSettled(fetchChapterPromises)
+            return Promise.all(fetchChapterPromises)
         });
         bar1.stop()
     }
