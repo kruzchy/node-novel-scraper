@@ -28,7 +28,7 @@ const getNewAxiosConfig = () => {
             instance: myAxiosInstance,
             onRetryAttempt: err => {
                 const cfg = rax.getConfig(err);
-                console.log(`\nRetry attempt #${cfg.currentRetryAttempt} for ${myAxiosInstance.defaults.url}`);
+                console.log(`Retry attempt #${cfg.currentRetryAttempt}`);
             }
         }
     }
