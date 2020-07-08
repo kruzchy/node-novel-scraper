@@ -2,6 +2,7 @@ const axios = require('axios');
 const UserAgent = require('user-agents')
 const cheerio = require('cheerio');
 const htmlToText = require('html-to-text');
+const fs = require('fs');
 // const start = async ()=>{
 //     const userAgent = new UserAgent();
 //     const headers = {
@@ -38,8 +39,16 @@ const htmlToText = require('html-to-text');
 //     console.log(text)
 // }
 const start = ()=>{
-    const str = 'CHAPTER 150 CHAPTER 150 - THE WICKED WOMAN COMES ASHORE, PART VIII';
-    const data = str.replace(/\b(chapter [\d.]+).*\1/i, '$1')
-    console.log(data)
+    const files = fs.readdirSync('E:\\WebstormProjects\\novel-scraper\\data\\My Youth Began With Him');
+    const nums = files.map(file=>{
+        const matchObject = file.match(/chapter\s+(\d+)/i)
+        if (matchObject) {
+            return matchObject[1]
+        } else return null;
+    })
+    for (let i=1; i<=3318; i++) {
+        let result = nums.find(number=>number==i);
+        if (!result) console.log(`>>number ${i} not found`)
+    }
 };
 start();

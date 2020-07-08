@@ -9,15 +9,15 @@ const wordExcerptScraper = require('./scrapers/wordexcerpt')
 const novelTrenchScraper = require('./scrapers/noveltrench')
 const novelFullScraper = require('./scrapers/novelfull')
 const readNovelFullScraper = require('./scrapers/readnovelfull')
-const wuxiaWorldSiteScraper = require('./scrapers/wuxiaworld.site')
+const wuxiaWorldComScraper = require('./scrapers/wuxiaworld.com')
 const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
 const webNovelOnlineScraper = require('./scrapers/webnovelonline')
 //POST REQUEST CORS FOR PAGINATION
-const readLightNovelsNetScraper = require('./scrapers/readlightnovels.net')
+const readLightNovelsNetScraper = require('./scrapers/future/readlightnovels.net')
 //CLOUDFARE. SCRAPING IS HARD
-const wuxiaWorldComScraper = require('./scrapers/wuxiaworld.com')
+const wuxiaWorldSiteScraper = require('./scrapers/future/wuxiaworld.site')
 //Rate limited only 15 requests per minute
-const lightNovelWorldScraper = require('./scrapers/lightnovelworld')
+const lightNovelWorldScraper = require('./scrapers/future/lightnovelworld')
 
 try {
     fs.accessSync('./data', fs.constants.F_OK)
@@ -32,14 +32,14 @@ class App {
         this.scrapers = {
             'wordexcerpt.com': wordExcerptScraper,
             'noveltrench.com': novelTrenchScraper,
-            'wuxiaworld.site': wuxiaWorldSiteScraper,
+            'wuxiaworld.com': wuxiaWorldComScraper,
             'readlightnovel.org': readLightNovelOrgScraper,
             'webnovelonline.com': webNovelOnlineScraper,
             'novelfull.com': novelFullScraper,
             'readnovelfull.com': readNovelFullScraper,
 
+            'wuxiaworld.site': wuxiaWorldSiteScraper,
             'readlightnovels.net': readLightNovelsNetScraper,
-            'wuxiaworld.com': wuxiaWorldComScraper,
             'lightnovelworld.com': lightNovelWorldScraper,
 
         }

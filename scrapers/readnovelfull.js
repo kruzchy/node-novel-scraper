@@ -6,7 +6,7 @@ const htmlToText = require('html-to-text');
 const fs = require('fs');
 const cliProgress = require('cli-progress');
 const pLimit = require('p-limit');
-const limit = pLimit(8);
+const limit = pLimit(16);
 const UserAgent = require('user-agents')
 
 
@@ -20,7 +20,7 @@ const getNewAxiosConfig = () => {
         raxConfig: {
             noResponseRetries: 5,
             retry: 5,
-            retryDelay: 1000,
+            retryDelay: 100,
             instance: myAxiosInstance,
         }
     }
