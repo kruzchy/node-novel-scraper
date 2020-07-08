@@ -56,7 +56,16 @@ module.exports = class WebNovelOnlineScraper {
     }
     async fetchChapters() {
         console.log('>>>Fetching chapters')
-        const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>limit(()=>this.fetchSingleChapter(chapterUrl)))
+        const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>limit(
+            ()=>this.fetchSingleChapter(chapterUrl)
+                .catch(
+                    (err)=> {
+                        console.log(`\n***Error at URL: ${chapterUrl}`)
+                        console.error(err)
+                    }
+                )
+            )
+        )
         bar1.start(fetchChapterPromises.length, 0)
         await Promise.all(fetchChapterPromises)
         bar1.stop()
@@ -76,7 +85,7 @@ module.exports = class WebNovelOnlineScraper {
     }
 
     getTitle() {
-        return sanitize(this.$('.chapter-info h3').text().trim())
+        return sanitize(this.$('.chapter-info h3').text().trim().replace(/\b([\d.]*) (chapter \1)/i, '$2'))
     }
 
     getChaptersList() {
