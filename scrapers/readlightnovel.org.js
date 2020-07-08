@@ -52,7 +52,7 @@ module.exports = class ReadLightNovelOrgScraper {
         } catch (e) {
             fs.mkdirSync(this.novelPath)
         }
-        this.chaptersUrlList = this.getChaptersList()
+        this.chaptersUrlList = await this.getChaptersList()
     }
     async fetchChapters() {
         console.log('>>>Fetching chapters')
@@ -83,8 +83,14 @@ module.exports = class ReadLightNovelOrgScraper {
         ).trim()
     }
 
-    getChaptersList() {
-        return this.$('.chapter-chs li a').toArray().map(item => this.$(item).attr('href'))
+    async getChaptersList() {
+        let tmpArray = this.$('.chapter-chs li a').toArray().map(item => this.$(item).attr('href'))
+        try {
+            const res = await axios.get(tmpArray[0], getNewAxiosConfig())
+        } catch (e) {
+            tmpArray.shift();
+        }
+        return tmpArray
     }
 
     async fetchSingleChapter(chapterUrl) {
