@@ -7,9 +7,11 @@ const fs = require('fs');
 const Bottleneck = require('bottleneck')
 const cliProgress = require('cli-progress');
 // const interceptorId = rax.attach();
+const pLimit = require('p-limit');
+const limit = pLimit(8);
 const limiter = new Bottleneck({
-    minTime: 333,
-    maxConcurrent: 8
+    minTime: 1000,
+    maxConcurrent: 1
 });
 const UserAgent = require('user-agents')
 
@@ -24,12 +26,8 @@ const getNewAxiosConfig = () => {
         raxConfig: {
             noResponseRetries: 5,
             retry: 5,
-            retryDelay: 2000,
+            retryDelay: 1000,
             instance: myAxiosInstance,
-            onRetryAttempt: err => {
-                const cfg = rax.getConfig(err);
-                console.log(`Retry attempt #${cfg.currentRetryAttempt}`);
-            }
         }
     }
 };
@@ -62,13 +60,20 @@ module.exports = class NovelFullScraper {
         await this.getChaptersList()
     }
     async fetchChapters() {
-        await limiter.schedule(()=>{
-            console.log('>>>Fetching chapters')
-            const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
-            bar1.start(fetchChapterPromises.length, 0)
-            return Promise.all(fetchChapterPromises)
-        });
+        // await limiter.schedule(()=>{
+        //     console.log('>>>Fetching chapters')
+        //     const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
+        //     bar1.start(fetchChapterPromises.length, 0)
+        //     return Promise.all(fetchChapterPromises)
+        // });
+
+
+        console.log('>>>Fetching chapters')
+        const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>limit(()=>this.fetchSingleChapter(chapterUrl)))
+        bar1.start(fetchChapterPromises.length, 0)
+        await Promise.all(fetchChapterPromises)
         bar1.stop()
+
     }
 
     processHtml() {
