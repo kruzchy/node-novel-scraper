@@ -51,11 +51,9 @@ const fs = require('fs');
 //         if (!result) console.log(`>>number ${i} not found`)
 //     }
 // };
-
+const url = require('url-parse')
 const start = async ()=>{
-    const res = await axios.get('https://wordexcerpt.com/series/remarried-empress/chapter-174/');
-    const $ = cheerio.load(res.data);
-    const data = $('.breadcrumb .active').text().trim()
-    console.log(data.match(/an announcement/i))
+    const data =  new url('https://www.readlightnovel.org/my-house-of-horrors', true)
+    console.log(data)
 };
 start();

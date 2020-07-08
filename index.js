@@ -37,24 +37,24 @@ class App {
             'webnovelonline.com': webNovelOnlineScraper,
             'novelfull.com': novelFullScraper,
             'readnovelfull.com': readNovelFullScraper,
-
+        }
+        this.scrapersFuture = {
             'wuxiaworld.site': wuxiaWorldSiteScraper,
             'readlightnovels.net': readLightNovelsNetScraper,
             'lightnovelworld.com': lightNovelWorldScraper,
-
         }
-        this.initScraper()
+        this.scraper = this.initScraper()
     }
 
     initScraper() {
         for (let scraperKey of Object.keys(this.scrapers)) {
-            if (url.parse(this.novelUrl).hostname === scraperKey) {
-                this.scraper = new this.scrapers[scraperKey](this.novelUrl)
-                break
+            if (url.parse(this.novelUrl).hostname.replace(/www\./i, '') === scraperKey) {
+                return  new this.scrapers[scraperKey](this.novelUrl)
             }
         }
+        console.log('>>>This domain is currently not supported. Please use a valid domain.')
+        process.exit()
     }
-
 }
 
 
