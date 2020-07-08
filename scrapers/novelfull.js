@@ -48,7 +48,7 @@ module.exports = class NovelFullScraper {
             console.log('>>>Fetching chapters')
             const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
             bar1.start(fetchChapterPromises.length, 0)
-            return Promise.allSettled(fetchChapterPromises)
+            return Promise.all(fetchChapterPromises)
         });
         bar1.stop()
     }
@@ -80,10 +80,9 @@ module.exports = class NovelFullScraper {
         if (!titleMatch) {
             title = this.$('.chapter-text').text()
         } else {
-            title = sanitize(titleMatch[0]
-                .replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
-                .replace(/[:.]/g, ' -'))
+            title = sanitize(titleMatch[0])
         }
+        title = sanitize(title.replace(/[:.]/g, ' -'))
         return title;
     }
 
