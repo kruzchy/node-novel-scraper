@@ -34,7 +34,7 @@ module.exports = class NovelFullScraper {
     async init() {
         const res = await axios.get(this.novelUrl, axiosConfig).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
-        this.novelName = sanitize(this.$('h3.title').text().trim());
+        this.novelName = sanitize(this.$(this.$('h3.title').toArray()[0]).text().trim());
         this.novelPath = `${this.rootDirectory}/${this.novelName}`
         try {
             fs.accessSync(this.novelPath, fs.constants.F_OK)
