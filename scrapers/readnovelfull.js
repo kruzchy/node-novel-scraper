@@ -4,20 +4,29 @@ const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
-const Bottleneck = require('bottleneck')
 const cliProgress = require('cli-progress');
-const interceptorId = rax.attach();
-const limiter = new Bottleneck({
-    minTime: 100,
-    maxConcurrent: 8
-});
+const pLimit = require('p-limit');
+const limit = pLimit(8);
 const UserAgent = require('user-agents')
-const userAgent = new UserAgent();
-const axiosConfig = {
-    headers:{
-        'User-Agent':userAgent.toString()
+
+
+const myAxiosInstance = axios.create();
+const getNewAxiosConfig = () => {
+    const userAgent = new UserAgent();
+    return {
+        headers: {
+            'User-Agent': userAgent.toString()
+        },
+        raxConfig: {
+            noResponseRetries: 5,
+            retry: 5,
+            retryDelay: 1000,
+            instance: myAxiosInstance,
+        }
     }
-}
+};
+const interceptorId = rax.attach(myAxiosInstance);
+
 const bar1 = new cliProgress.SingleBar({
     format: 'Downloading {bar} {value}/{total} Chapters'
 }, cliProgress.Presets.shades_classic);
@@ -32,7 +41,7 @@ module.exports = class ReadNovelFullScraper {
         this.chaptersUrlList = null;
     }
     async init() {
-        const res = await axios.get(this.novelUrl, axiosConfig).catch(e=>console.error(e));
+        const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
         this.novelName = sanitize(this.$(this.$('h3.title').toArray()[0]).text().trim());
         this.novelPath = `${this.rootDirectory}/${this.novelName}`
@@ -44,12 +53,10 @@ module.exports = class ReadNovelFullScraper {
         this.chaptersUrlList = await this.getChaptersList()
     }
     async fetchChapters() {
-        await limiter.schedule(()=>{
-            console.log('>>>Fetching chapters')
-            const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
-            bar1.start(fetchChapterPromises.length, 0)
-            return Promise.all(fetchChapterPromises)
-        });
+        console.log('>>>Fetching chapters')
+        const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>limit(()=>this.fetchSingleChapter(chapterUrl)))
+        bar1.start(fetchChapterPromises.length, 0)
+        await Promise.all(fetchChapterPromises)
         bar1.stop()
     }
 
@@ -83,13 +90,13 @@ module.exports = class ReadNovelFullScraper {
 
     async getChaptersList() {
         const novelId = this.$('div#rating').attr('data-novel-id')
-        const res = await axios.get(`https://readnovelfull.com/ajax/chapter-archive?novelId=${novelId}`, axiosConfig)
+        const res = await axios.get(`https://readnovelfull.com/ajax/chapter-archive?novelId=${novelId}`, getNewAxiosConfig())
         const $ = cheerio.load(res.data);
         return $('.list-chapter li a').toArray().map(item => this.baseUrl + $(item).attr('href'))
     }
 
     async fetchSingleChapter(chapterUrl) {
-        const res =  await axios.get(chapterUrl, axiosConfig).catch(e=>console.error(e));
+        const res =  await axios.get(chapterUrl, getNewAxiosConfig()).catch(e=>console.error(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 

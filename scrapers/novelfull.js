@@ -4,15 +4,10 @@ const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
-const Bottleneck = require('bottleneck')
 const cliProgress = require('cli-progress');
-// const interceptorId = rax.attach();
+
 const pLimit = require('p-limit');
 const limit = pLimit(8);
-const limiter = new Bottleneck({
-    minTime: 1000,
-    maxConcurrent: 1
-});
 const UserAgent = require('user-agents')
 
 
@@ -60,14 +55,6 @@ module.exports = class NovelFullScraper {
         await this.getChaptersList()
     }
     async fetchChapters() {
-        // await limiter.schedule(()=>{
-        //     console.log('>>>Fetching chapters')
-        //     const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.fetchSingleChapter(chapterUrl))
-        //     bar1.start(fetchChapterPromises.length, 0)
-        //     return Promise.all(fetchChapterPromises)
-        // });
-
-
         console.log('>>>Fetching chapters')
         const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>limit(()=>this.fetchSingleChapter(chapterUrl)))
         bar1.start(fetchChapterPromises.length, 0)
