@@ -3,6 +3,7 @@ const axios = require('axios')
 const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
+const wrap = require('word-wrap');
 const fs = require('fs');
 const cliProgress = require('cli-progress');
 
@@ -62,14 +63,13 @@ module.exports = class WebNovelOnlineScraper {
     }
 
     processHtml() {
+        this.$('p').removeAttr('style')
     }
 
-    getText(textElement) {
-        return htmlToText.fromString(textElement.toString(), {
-            wordwrap: 130
-        })
-            .replace(/\*\*\*.*you are reading.*\*\*\*/ig, '')
-            .trim();
+    getText(data) {
+         let temp =  JSON.parse(data.match(/<script>.*initial_data.*<\/script>/i)[0].split('=')[1].replace(/;<\/script>/i, '').trim()).filter(item=>item)[1].chapter.trim();
+         temp = wrap(temp, {width: 130})
+        return temp;
     }
 
     checkIfExit() {
@@ -87,11 +87,11 @@ module.exports = class WebNovelOnlineScraper {
         const res =  await axios.get(chapterUrl, getNewAxiosConfig()).catch(e=>console.log(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
-
+        // this.processHtml()
 
 
         const novelTextElement = this.$('.chapter-content')
-        const text = this.getText(novelTextElement)
+        const text = this.getText(res.data)
         const title = this.getTitle()
 
         const chapterPath = `${this.novelPath}/${title}`

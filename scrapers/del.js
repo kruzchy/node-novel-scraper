@@ -51,9 +51,12 @@ const fs = require('fs');
 //         if (!result) console.log(`>>number ${i} not found`)
 //     }
 // };
-const url = require('url-parse')
+const sc = require('./webnovelonline')
 const start = async ()=>{
-    const data =  new url('https://www.readlightnovel.org/my-house-of-horrors', true)
+    const inst = new sc('sdas')
     console.log(data)
 };
 start();
+//this.$('script').toArray().map(item=>this.$(item).html()).filter(item=>item.match(/initial_data/i))[0]
+// res.data.match(/<script>.*initial_data.*<\/script>/i)[0].split('=')[1].replace(/;<\/script>/i, '')
+//JSON.parse(res.data.match(/<script>.*initial_data.*<\/script>/i)[0].split('=')[1].replace(/;<\/script>/i, '')).filter(item=>item)[1].chapter.trim()
