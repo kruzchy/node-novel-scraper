@@ -72,11 +72,10 @@ module.exports = class WebNovelOnlineScraper {
     }
 
     processHtml() {
-        this.$('p').removeAttr('style')
     }
 
     getText(data) {
-         let temp =  JSON.parse(data.match(/<script>.*initial_data.*<\/script>/i)[0].split('=')[1].replace(/;<\/script>/i, '').trim()).filter(item=>item)[1].chapter.trim();
+         let temp =  JSON.parse(data.match(/<script>.*initial_data.*<\/script>/i)[0].split(/initial_data_\s*=/i)[1].replace(/;<\/script>/i, '').trim()).filter(item=>item)[1].chapter.trim()
          temp = wrap(temp, {width: 130})
         return temp;
     }
