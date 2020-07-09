@@ -7,10 +7,14 @@ const fs = require('fs');
 const wrap = require('word-wrap');
 
 const start = async ()=>{
-    const url = 'https://webnovelonline.com/chapter/library_of_heavens_path/chapter-2185'
+    const url = 'https://webnovelonline.com/chapter/the_beginning_after_the_end/chapter-1'
     const res = await axios.get(url)
     let temp =  JSON.parse(res.data.match(/<script>.*initial_data.*<\/script>/i)[0].split(/initial_data_\s*=/i)[1].replace(/;<\/script>/i, '').trim()).filter(item=>item)[1].chapter.trim()
-    temp = wrap(temp, {width: 130, indent: ''})
+    if (temp.match(/<p>/gi).length>0) {
+        temp = htmlToText.fromString(temp, {wordwrap: 130})
+    } else {
+        temp = wrap(temp, {width: 130, indent: ''})
+    }
     console.log(temp)
 };
 start();
