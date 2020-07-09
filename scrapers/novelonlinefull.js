@@ -3,7 +3,6 @@ const axios = require('axios')
 const rax = require('retry-axios');
 const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
-const wrap = require('word-wrap');
 const fs = require('fs');
 const cliProgress = require('cli-progress');
 
@@ -29,30 +28,31 @@ const getNewAxiosConfig = () => {
 };
 const interceptorId = rax.attach(myAxiosInstance);
 
+
 const bar1 = new cliProgress.SingleBar({
     format: 'Downloading {bar} {value}/{total} Chapters'
 }, cliProgress.Presets.shades_classic);
-module.exports = class WebNovelOnlineScraper {
+module.exports = class NovelOnlineFullScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
         this.novelUrl = novelUrl;
         this.$ = null;
         this.novelName = null;
         this.novelPath = null;
+        this.baseUrl = 'https://novelfull.com'
         this.chaptersUrlList = null;
-        this.baseUrl = 'https://webnovelonline.com';
     }
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
-        this.novelName = sanitize(this.$('h1').text().trim());
+        this.novelName = sanitize(this.$(this.$('h3.title').toArray()[0]).text().trim());
         this.novelPath = `${this.rootDirectory}/${this.novelName}`
         try {
             fs.accessSync(this.novelPath, fs.constants.F_OK)
         } catch (e) {
             fs.mkdirSync(this.novelPath)
         }
-        this.chaptersUrlList = this.getChaptersList()
+        await this.getChaptersList()
     }
     async fetchChapters() {
         console.log('>>>Fetching chapters')
@@ -69,42 +69,68 @@ module.exports = class WebNovelOnlineScraper {
         bar1.start(fetchChapterPromises.length, 0)
         await Promise.all(fetchChapterPromises)
         bar1.stop()
+
     }
 
     processHtml() {
+
     }
 
-    getText(data) {
-         let temp =  JSON.parse(data.match(/<script>.*initial_data.*<\/script>/i)[0].split(/initial_data_\s*=/i)[1].replace(/;<\/script>/i, '').trim()).filter(item=>item)[1].chapter.trim()
-        if (temp.match(/<p>/gi)) {
-            temp = htmlToText.fromString(temp, {wordwrap: 130})
+    getText(textElement) {
+        return htmlToText.fromString(textElement.toString(), {
+            wordwrap: 130
+        })
+            .replace(/if you find any errors(.|\s)*/i, '')
+            .trim();
+        // .replace(/(\n|.)*editor group:.*/i, '')
+        // .replace(/(\n|.)*editor:.*/i, '')
+        //         .replace(/(\n|.)*translator:.*/i, '')
+        //         .replace(/(\n|.)*author:.*/i, '')
+        //         .replace(/(\n|.)*author:.*/i, '')
+    }
+
+    checkIfExit(text) {
+
+    }
+
+    getTitle(text) {
+        const titleMatch = text.match(/(volume .* )?chapter [\d.]+.*/i)
+        let title;
+        if (!titleMatch) {
+            title = this.$('.chapter-text').text()
         } else {
-            temp = wrap(temp, {width: 130, indent: ''})
+            title = sanitize(titleMatch[0])
         }
-         return temp;
+        title = sanitize(title.replace(/[:.]/g, ' -').replace(/\b(chapter [\d.]+).*\1/i, '$1'))
+        return title;
     }
 
-    checkIfExit() {
-    }
-
-    getTitle() {
-        return sanitize(this.$('.chapter-info h3').text().trim().replace(/\b([\d.]*) (chapter \1)/i, '$2'))
-    }
-
-    getChaptersList() {
-        return this.$('div[role=\'listitem\'] a').toArray().map(item => this.baseUrl + this.$(item).attr('href'))
+    async getChaptersList() {
+        const chaptersList = [];
+        const lastPageNumber = this.$('.last a').attr('href').split('?page=')[1].split('&')[0]
+        const getPageUrl = (pageNumber)=>{
+            return this.baseUrl + this.$('.last a').attr('href').split('?')[0] + `?page=${pageNumber}&per-page=50`
+        };
+        for (let pageNum=1; pageNum <= lastPageNumber; pageNum++) {
+            const url = getPageUrl(pageNum)
+            const res = await axios.get(url, getNewAxiosConfig());
+            const $ = cheerio.load(res.data);
+            $('.list-chapter li a').toArray().forEach(item => chaptersList.push(this.baseUrl + $(item).attr('href')))
+        }
+        this.chaptersUrlList = chaptersList;
     }
 
     async fetchSingleChapter(chapterUrl) {
-        const res =  await axios.get(chapterUrl, getNewAxiosConfig()).catch(e=>console.log(e));
+        const res =  await axios.get(chapterUrl, getNewAxiosConfig()).catch(e=>console.error(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
-        // this.processHtml()
 
 
-        const novelTextElement = this.$('.chapter-content')
-        const text = this.getText(res.data)
-        const title = this.getTitle()
+        const novelTextElement = this.$('#chapter-content')
+        const text = this.getText(novelTextElement)
+        const title = this.getTitle(text)
+
+
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
@@ -115,6 +141,7 @@ module.exports = class WebNovelOnlineScraper {
         } catch (e) {
             fs.mkdirSync(chapterPath)
         }
+
         fs.writeFileSync(chapterFilePath, text)
         bar1.increment()
         // console.log(`>>>Created file "${title}.txt"`)

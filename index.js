@@ -8,6 +8,7 @@ const url = require('url');
 const wordExcerptScraper = require('./scrapers/wordexcerpt')
 const novelTrenchScraper = require('./scrapers/noveltrench')
 const novelFullScraper = require('./scrapers/novelfull')
+const novelOnlineFullScraper = require('./scrapers/novelonlinefull')
 const readNovelFullScraper = require('./scrapers/readnovelfull')
 const wuxiaWorldComScraper = require('./scrapers/wuxiaworld.com')
 const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
@@ -36,6 +37,7 @@ class App {
             'readlightnovel.org': readLightNovelOrgScraper,
             'webnovelonline.com': webNovelOnlineScraper,
             'novelfull.com': novelFullScraper,
+            'novelonlinefull.com': novelOnlineFullScraper,
             'readnovelfull.com': readNovelFullScraper,
         }
         this.scrapersFuture = {
