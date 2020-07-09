@@ -45,14 +45,14 @@ module.exports = class NovelOnlineFullScraper {
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
-        this.novelName = sanitize(this.$(this.$('h3.title').toArray()[0]).text().trim());
+        this.novelName = sanitize(this.$('h1').text().trim());
         this.novelPath = `${this.rootDirectory}/${this.novelName}`
         try {
             fs.accessSync(this.novelPath, fs.constants.F_OK)
         } catch (e) {
             fs.mkdirSync(this.novelPath)
         }
-        await this.getChaptersList()
+        this.chaptersUrlList = this.getChaptersList()
     }
     async fetchChapters() {
         console.log('>>>Fetching chapters')
@@ -73,51 +73,32 @@ module.exports = class NovelOnlineFullScraper {
     }
 
     processHtml() {
-
     }
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
             wordwrap: 130
         })
-            .replace(/if you find any errors(.|\s)*/i, '')
+            .replace(/.*pa\s*treon.*/gi, '')
             .trim();
-        // .replace(/(\n|.)*editor group:.*/i, '')
-        // .replace(/(\n|.)*editor:.*/i, '')
-        //         .replace(/(\n|.)*translator:.*/i, '')
-        //         .replace(/(\n|.)*author:.*/i, '')
-        //         .replace(/(\n|.)*author:.*/i, '')
     }
 
     checkIfExit(text) {
 
     }
 
-    getTitle(text) {
-        const titleMatch = text.match(/(volume .* )?chapter [\d.]+.*/i)
-        let title;
-        if (!titleMatch) {
-            title = this.$('.chapter-text').text()
-        } else {
-            title = sanitize(titleMatch[0])
+    getTitle() {
+        //
+        let tempTitle = sanitize(this.$('.breadcrumb p').children().remove().end().text().trim())
+        if (tempTitle.match(/chapter\s*[\d.]+/i)) {
+            return tempTitle
+        } else if (tempTitle.match(/^[\d.]+/i)) {
+            return `Chapter ${tempTitle}`
         }
-        title = sanitize(title.replace(/[:.]/g, ' -').replace(/\b(chapter [\d.]+).*\1/i, '$1'))
-        return title;
     }
 
-    async getChaptersList() {
-        const chaptersList = [];
-        const lastPageNumber = this.$('.last a').attr('href').split('?page=')[1].split('&')[0]
-        const getPageUrl = (pageNumber)=>{
-            return this.baseUrl + this.$('.last a').attr('href').split('?')[0] + `?page=${pageNumber}&per-page=50`
-        };
-        for (let pageNum=1; pageNum <= lastPageNumber; pageNum++) {
-            const url = getPageUrl(pageNum)
-            const res = await axios.get(url, getNewAxiosConfig());
-            const $ = cheerio.load(res.data);
-            $('.list-chapter li a').toArray().forEach(item => chaptersList.push(this.baseUrl + $(item).attr('href')))
-        }
-        this.chaptersUrlList = chaptersList;
+    getChaptersList() {
+        return this.$('.chapter-list a').toArray().map(item => this.$(item).attr('href'))
     }
 
     async fetchSingleChapter(chapterUrl) {
@@ -126,9 +107,9 @@ module.exports = class NovelOnlineFullScraper {
         this.$ = cheerio.load(htmlData);
 
 
-        const novelTextElement = this.$('#chapter-content')
+        const novelTextElement = this.$('#vung_doc')
         const text = this.getText(novelTextElement)
-        const title = this.getTitle(text)
+        const title = this.getTitle()
 
 
 
