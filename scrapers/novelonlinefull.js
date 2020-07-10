@@ -77,7 +77,7 @@ module.exports = class NovelOnlineFullScraper {
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
-            wordwrap: 130
+            wordwrap: null
         })
             .replace(/\n\n\n/gi, '\n\n')
             .replace(/.*pa\s*treon.*/gi, '')

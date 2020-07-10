@@ -74,7 +74,7 @@ module.exports = class ReadNovelFullScraper {
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
-            wordwrap: 130
+            wordwrap: null
         })
             .trim();
     }

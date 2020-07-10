@@ -75,7 +75,7 @@ module.exports = class WordexcerptScraper {
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
-            wordwrap: 130
+            wordwrap: null
         })
             .replace(/.*wait to read ahead\?(.*|\s|\n)+$/i, '')
             .trim();
