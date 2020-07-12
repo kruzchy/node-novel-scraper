@@ -74,9 +74,14 @@ module.exports = class WordexcerptScraper {
     }
 
     getText(textElement) {
-        return htmlToText.fromString(textElement.toString(), {
+        const tempTitle = this.$('.breadcrumb .active').text().trim()
+        let titleRegex = new RegExp(tempTitle, 'i')
+        let tempText = htmlToText.fromString(textElement.toString(), {
             wordwrap: null
         })
+        !tempText.match(titleRegex) && (titleRegex = /^chapter.*/i)
+        return tempText
+            .replace(titleRegex, '<strong>$&</strong>')
             .replace(/.*wait to read ahead\?(.*|\s|\n)+$/i, '')
             .trim();
     }
@@ -107,8 +112,8 @@ module.exports = class WordexcerptScraper {
         this.processHtml()
 
         const novelTextElement = this.$('.text-left');
-        const text = this.getText(novelTextElement);
         const title = this.getTitle();
+        const text = this.getText(novelTextElement, title);
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
