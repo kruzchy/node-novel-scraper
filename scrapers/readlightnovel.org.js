@@ -74,7 +74,7 @@ module.exports = class ReadLightNovelOrgScraper {
     }
 
     processHtml() {
-        this.$('.trinity-player-iframe-wrapper, small, center, .desc div.hidden').remove()
+        this.$('.trinity-player-iframe-wrapper, small, small+br, center, center+hr, hr+br,.desc div.hidden').remove()
     }
 
     getText(textElement) {
