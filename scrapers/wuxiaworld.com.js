@@ -77,7 +77,8 @@ module.exports = class WuxiaWorldComScraper {
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
-            wordwrap: null
+            wordwrap: null,
+            uppercaseHeadings: false
         });
     }
 

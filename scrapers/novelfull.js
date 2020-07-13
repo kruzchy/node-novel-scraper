@@ -79,7 +79,8 @@ module.exports = class NovelFullScraper {
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
-            wordwrap: null
+            wordwrap: null,
+            uppercaseHeadings: false
         })
             .replace(/if you find any errors(.|\s)*/i, '')
             .trim();

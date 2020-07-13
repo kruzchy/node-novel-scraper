@@ -79,7 +79,8 @@ module.exports = class ReadLightNovelOrgScraper {
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
-            wordwrap: null
+            wordwrap: null,
+            uppercaseHeadings: false
         }).trim();
     }
 

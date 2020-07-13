@@ -78,7 +78,10 @@ module.exports = class WebNovelOnlineScraper {
     getText(data) {
          let temp =  JSON.parse(data.match(/<script>.*initial_data.*<\/script>/i)[0].split(/initial_data_\s*=/i)[1].replace(/;<\/script>/i, '').trim()).filter(item=>item)[1].chapter.trim()
         if (temp.match(/<p>/gi)) {
-            temp = htmlToText.fromString(temp, {wordwrap: null})
+            temp = htmlToText.fromString(temp, {
+                wordwrap: null,
+                uppercaseHeadings: false
+            })
         }
          return temp;
     }

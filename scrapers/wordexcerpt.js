@@ -78,7 +78,8 @@ module.exports = class WordexcerptScraper {
         const tempTitle = this.$('.breadcrumb .active').text().trim()
         let titleRegex = new RegExp(tempTitle, 'i')
         let tempText = htmlToText.fromString(textElement.toString(), {
-            wordwrap: null
+            wordwrap: null,
+            uppercaseHeadings: false
         })
         !tempText.match(titleRegex) && (titleRegex = /^chapter.*/i)
         return tempText
