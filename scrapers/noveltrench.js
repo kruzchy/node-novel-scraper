@@ -39,6 +39,8 @@ module.exports = class novelTrenchScraper {
         this.novelName = null;
         this.novelPath = null;
         this.chaptersUrlList = null;
+        this.titleRegex = null;
+
     }
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
@@ -81,7 +83,9 @@ module.exports = class novelTrenchScraper {
     }
 
     getTitle() {
-        return sanitize(this.$(this.$('.breadcrumb .active').toArray()[0]).text().trim()
+        let tempTitle = this.$(this.$('.breadcrumb .active').toArray()[0]).text().trim()
+        this.titleRegex = new RegExp(tempTitle, 'i')
+        return sanitize(tempTitle
             .replace(/[:.]/, ' -'))
             .replace(/^\w/, (c) => c.toUpperCase())
     }
@@ -98,8 +102,11 @@ module.exports = class novelTrenchScraper {
 
 
         const novelTextElement = this.$('.text-left')
-        const text = this.getText(novelTextElement)
+        let text = this.getText(novelTextElement)
         const title = this.getTitle()
+
+        !text.match(this.titleRegex) && (this.titleRegex = /^chapter.*/i)
+        text = text.replace(this.titleRegex, '<strong>$&</strong>')
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`

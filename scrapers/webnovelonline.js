@@ -41,6 +41,7 @@ module.exports = class WebNovelOnlineScraper {
         this.novelPath = null;
         this.chaptersUrlList = null;
         this.baseUrl = 'https://webnovelonline.com';
+        this.titleRegex = null;
     }
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
@@ -86,7 +87,9 @@ module.exports = class WebNovelOnlineScraper {
     }
 
     getTitle() {
-        return sanitize(this.$('.chapter-info h3').text().trim().replace(/\b([\d.]*) (chapter \1)/i, '$2'))
+        let tempTitle = this.$('.chapter-info h3').text().trim();
+        this.titleRegex = new RegExp(tempTitle, 'i')
+        return sanitize(tempTitle.replace(/\b([\d.]*) (chapter \1)/i, '$2'))
     }
 
     getChaptersList() {
@@ -101,8 +104,11 @@ module.exports = class WebNovelOnlineScraper {
 
 
         const novelTextElement = this.$('.chapter-content')
-        const text = this.getText(res.data)
+        let text = this.getText(res.data)
         const title = this.getTitle()
+
+        !text.match(this.titleRegex) && (this.titleRegex = /^chapter.*/i)
+        text = text.replace(this.titleRegex, '<strong>$&</strong>')
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`

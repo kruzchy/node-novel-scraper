@@ -38,6 +38,7 @@ module.exports = class WordexcerptScraper {
         this.novelName = null;
         this.novelPath = null;
         this.chaptersUrlList = null;
+
     }
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
@@ -84,6 +85,10 @@ module.exports = class WordexcerptScraper {
             .replace(titleRegex, '<strong>$&</strong>')
             .replace(/.*wait to read ahead\?(.*|\s|\n)+$/i, '')
             .trim();
+    }
+
+    makeTitleBold(text) {
+        return text
     }
 
     checkIfExit() {

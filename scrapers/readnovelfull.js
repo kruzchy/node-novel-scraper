@@ -39,6 +39,8 @@ module.exports = class ReadNovelFullScraper {
         this.novelPath = null;
         this.baseUrl = 'https://readnovelfull.com'
         this.chaptersUrlList = null;
+        this.titleRegex = null;
+
     }
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
@@ -89,8 +91,9 @@ module.exports = class ReadNovelFullScraper {
         if (!titleMatch) {
             title = this.$('.chr-text').text()
         } else {
-            title = sanitize(titleMatch[0])
+            title = titleMatch[0]
         }
+        this.titleRegex = new RegExp(title, 'i')
         title = sanitize(title.replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
             .replace(/[:.]/g, ' -'))
         return title;
@@ -110,10 +113,11 @@ module.exports = class ReadNovelFullScraper {
 
 
         const novelTextElement = this.$('#chr-content')
-        const text = this.getText(novelTextElement)
+        let text = this.getText(novelTextElement)
         const title = this.getTitle(text)
 
-
+        !text.match(this.titleRegex) && (this.titleRegex = /^chapter.*/i)
+        text = text.replace(this.titleRegex, '<strong>$&</strong>')
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`

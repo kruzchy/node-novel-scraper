@@ -41,6 +41,8 @@ module.exports = class NovelOnlineFullScraper {
         this.novelPath = null;
         this.baseUrl = 'https://novelfull.com'
         this.chaptersUrlList = null;
+        this.titleRegex = null;
+
     }
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
@@ -90,12 +92,13 @@ module.exports = class NovelOnlineFullScraper {
 
     getTitle() {
         //
-        let tempTitle = sanitize(this.$('.breadcrumb p').children().remove().end().text().trim())
-        if (tempTitle.match(/chapter\s*[\d.]+/i)) {
-            return tempTitle
-        } else if (tempTitle.match(/^[\d.]+/i)) {
-            return `Chapter ${tempTitle}`
+        let tempTitle = this.$('.breadcrumb p').children().remove().end().text().trim()
+
+        if (!tempTitle.match(/chapter\s*[\d.]+/i) && tempTitle.match(/^[\d.]+/i)) {
+            tempTitle = `Chapter ${tempTitle}`
         }
+        this.titleRegex = new RegExp(tempTitle, 'i')
+        return sanitize(tempTitle)
     }
 
     getChaptersList() {
@@ -109,9 +112,11 @@ module.exports = class NovelOnlineFullScraper {
 
 
         const novelTextElement = this.$('#vung_doc')
-        const text = this.getText(novelTextElement)
+        let text = this.getText(novelTextElement)
         const title = this.getTitle()
 
+        !text.match(this.titleRegex) && (this.titleRegex = /^chapter.*/i)
+        text = text.replace(this.titleRegex, '<strong>$&</strong>')
 
 
         const chapterPath = `${this.novelPath}/${title}`

@@ -41,6 +41,8 @@ module.exports = class ReadLightNovelOrgScraper {
         this.novelPath = null;
         this.chaptersUrlList = null;
         this.bar = null;
+        this.titleRegex = null;
+
     }
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
@@ -85,8 +87,10 @@ module.exports = class ReadLightNovelOrgScraper {
     }
 
     getTitle(text) {
+        let tempTitle = text.match(/chapter [\d.]+/i)[0]
+        this.titleRegex = new RegExp(tempTitle, 'i')
         return sanitize(
-            text.match(/chapter [\d.]+/i)[0]
+            tempTitle
             .replace(/[:.]/, ' -')
         ).trim()
     }
@@ -109,9 +113,11 @@ module.exports = class ReadLightNovelOrgScraper {
         this.processHtml()
 
         const novelTextElement = this.$('.desc');
-        const text = this.getText(novelTextElement);
-
+        let text = this.getText(novelTextElement);
         const title = this.getTitle(text);
+
+        !text.match(this.titleRegex) && (this.titleRegex = /^chapter.*/i)
+        text = text.replace(this.titleRegex, '<strong>$&</strong>')
 
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
