@@ -94,7 +94,7 @@ module.exports = class ReadNovelFullScraper {
         } else {
             title = titleMatch[0]
         }
-        this.titleRegex = new RegExp(title, 'i')
+        this.titleRegex = new RegExp(`.*${title}.*`, 'i')
         title = sanitize(title.replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
             .replace(/[:.]/g, ' -'))
         return title;

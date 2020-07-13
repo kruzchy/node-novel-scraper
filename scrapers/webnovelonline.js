@@ -91,7 +91,7 @@ module.exports = class WebNovelOnlineScraper {
 
     getTitle() {
         let tempTitle = this.$('.chapter-info h3').text().trim();
-        this.titleRegex = new RegExp(tempTitle, 'i')
+        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
         return sanitize(tempTitle.replace(/\b([\d.]*) (chapter \1)/i, '$2'))
     }
 

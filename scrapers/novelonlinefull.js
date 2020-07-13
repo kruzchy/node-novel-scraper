@@ -98,7 +98,7 @@ module.exports = class NovelOnlineFullScraper {
         if (!tempTitle.match(/chapter\s*[\d.]+/i) && tempTitle.match(/^[\d.]+/i)) {
             tempTitle = `Chapter ${tempTitle}`
         }
-        this.titleRegex = new RegExp(tempTitle, 'i')
+        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
         return sanitize(tempTitle)
     }
 

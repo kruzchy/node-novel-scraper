@@ -89,7 +89,7 @@ module.exports = class ReadLightNovelOrgScraper {
 
     getTitle(text) {
         let tempTitle = text.match(/chapter [\d.]+/i)[0]
-        this.titleRegex = new RegExp(tempTitle, 'i')
+        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
         return sanitize(
             tempTitle
             .replace(/[:.]/, ' -')
