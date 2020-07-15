@@ -95,14 +95,8 @@ module.exports = class NovelFullScraper {
 
     }
 
-    getTitle(text) {
-        const titleMatch = text.match(/(volume .* )?chapter [\d.]+.*/i)
-        let title;
-        if (!titleMatch) {
-            title = this.$('.chapter-text').text()
-        } else {
-            title = titleMatch[0]
-        }
+    getTitle() {
+        let title =  this.$('.chapter-text').text();
         this.titleRegex = new RegExp(`.*${title}.*`, 'i')
         title = sanitize(title.replace(/[:.]/g, ' -').replace(/\b(chapter [\d.]+).*\1/i, '$1'))
         return title;
@@ -131,7 +125,7 @@ module.exports = class NovelFullScraper {
 
         const novelTextElement = this.$('#chapter-content')
         let text = this.getText(novelTextElement)
-        const title = this.getTitle(text)
+        const title = this.getTitle()
 
         !text.match(this.titleRegex) && (this.titleRegex = /^chapter.*/i)
         text = text.replace(this.titleRegex, '<strong>$&</strong>')

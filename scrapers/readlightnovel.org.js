@@ -88,6 +88,7 @@ module.exports = class ReadLightNovelOrgScraper {
     }
 
     getTitle(text) {
+        // let title = this.$('.block-title h1').children().remove().end().text().split('-')[1].trim()
         let tempTitle = text.match(/chapter [\d.]+/i)[0]
         this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
         return sanitize(
