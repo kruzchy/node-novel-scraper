@@ -1,13 +1,5 @@
 const cheerio = require('cheerio');
 const axios = require('axios')
-const rax = require('retry-axios');
-const sanitize = require("sanitize-filename");
-const htmlToText = require('html-to-text');
-const fs = require('fs');
-const cliProgress = require('cli-progress');
-const pLimit = require('p-limit');
-const limit = pLimit(16);
-const UserAgent = require('user-agents')
 
 const Scraper = require('./utils/scraper')
 
