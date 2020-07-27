@@ -48,7 +48,7 @@ module.exports = class Scraper {
     }
 
     getNovelName() {
-        return this.$(this.novelNameSelector).text().trim()
+        return sanitize(this.$(this.novelNameSelector).text().trim())
     }
 
     getChapterLinks() {
@@ -92,8 +92,8 @@ module.exports = class Scraper {
     }
 
     getTitle() {
-        const tempTitle =  this.$(this.chapterTitleSelector).text().trim();
-        return this.processChapterTitle(tempTitle)
+        const tempTitle = this.$(this.chapterTitleSelector).text();
+        return sanitize(this.processChapterTitle(tempTitle))
     }
 
     processChapterText(text) {
