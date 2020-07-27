@@ -9,49 +9,19 @@ const pLimit = require('p-limit');
 const limit = pLimit(16);
 const UserAgent = require('user-agents')
 
+const Scraper = require('./utils/scraper')
 
-const myAxiosInstance = axios.create();
-const getNewAxiosConfig = () => {
-    const userAgent = new UserAgent();
-    return {
-        headers: {
-            'User-Agent': userAgent.toString()
-        },
-        raxConfig: {
-            noResponseRetries: 5,
-            retry: 5,
-            retryDelay: 100,
-            instance: myAxiosInstance,
-        }
-    }
-};
-const interceptorId = rax.attach(myAxiosInstance);
-
-const bar1 = new cliProgress.SingleBar({
-    format: 'Downloading {bar} {value}/{total} Chapters'
-}, cliProgress.Presets.shades_classic);
-module.exports = class WordexcerptScraper {
+module.exports = class WordexcerptScraper extends Scraper{
     constructor(novelUrl) {
-        this.rootDirectory = './data'
-        this.novelUrl = novelUrl;
-        this.$ = null;
-        this.novelName = null;
-        this.novelPath = null;
-        this.chaptersUrlList = null;
+        super(novelUrl);
+        this.novelNameSelector = 'h1';
+    }
+
+    getChapterLinks() {
 
     }
-    async init() {
-        const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
-        this.$ = cheerio.load(res.data);
-        this.novelName = sanitize(this.$('h1').text().trim());
-        this.novelPath = `${this.rootDirectory}/${this.novelName}`
-        try {
-            fs.accessSync(this.novelPath, fs.constants.F_OK)
-        } catch (e) {
-            fs.mkdirSync(this.novelPath)
-        }
-        this.chaptersUrlList = await this.getChaptersList()
-    }
+
+
     async fetchChapters() {
         console.log('>>>Fetching chapters')
         const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>limit(

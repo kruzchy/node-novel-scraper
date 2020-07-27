@@ -10,7 +10,7 @@ const novelTrenchScraper = require('./scrapers/noveltrench')
 const novelFullScraper = require('./scrapers/novelfull')
 const novelOnlineFullScraper = require('./scrapers/novelonlinefull')
 const readNovelFullScraper = require('./scrapers/readnovelfull')
-const wuxiaWorldComScraper = require('./scrapers/wuxiaworld.com')
+const wuxiaWorldComScraper = require('./scrapers/future/wuxiaworld.com')
 const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
 const webNovelOnlineScraper = require('./scrapers/webnovelonline')
 //POST REQUEST CORS FOR PAGINATION
