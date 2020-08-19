@@ -26,6 +26,7 @@ module.exports = class Scraper {
         this.novelNameSelector = null;
         this.chapterTextSelector = null;
         this.chapterTitleSelector = null;
+        this.titleRegex = null;
     }
 
     createDirectoryIfNotExists(directory) {
