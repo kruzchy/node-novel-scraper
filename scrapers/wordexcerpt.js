@@ -1,9 +1,11 @@
 const cheerio = require('cheerio');
 const axios = require('axios')
-
+const {wordExcerptConstant} = require('./utils/scraperConstants')
 const Scraper = require('./utils/scraper')
+const sanitize = require("sanitize-filename");
 
 module.exports = class WordexcerptScraper extends Scraper{
+    scraperName = wordExcerptConstant
     constructor(novelUrl) {
         super(novelUrl);
         this.novelNameSelector = 'h1';
@@ -15,14 +17,14 @@ module.exports = class WordexcerptScraper extends Scraper{
         return  this.$('.wp-manga-chapter a').toArray().map(item => this.$(item).attr('href'));
     }
 
-    async getProcessedChaptersList(initalChaptersList) {
-        const res = await axios.get(initalChaptersList[0], this.getNewAxiosConfig());
+    async getProcessedChaptersList(initialChaptersList) {
+        const res = await axios.get(initialChaptersList[0], this.getNewAxiosConfig());
         const $ = cheerio.load(res.data);
         if ($('.breadcrumb .active').text().trim().match(/an announcement/i)) {
             console.log('>>>Last chapter is an announcement. So ignoring.')
-            initalChaptersList.shift()
+            initialChaptersList.shift()
         }
-        return initalChaptersList;
+        return initialChaptersList;
     }
 
     processCheerioDOMTree() {
@@ -31,7 +33,7 @@ module.exports = class WordexcerptScraper extends Scraper{
     }
 
     processChapterTitle(tempTitle) {
-        return tempTitle.replace(/[:.]/, ' -').trim()
+        return sanitize(tempTitle.replace(/[:.]/, ' -').trim())
     }
 
     processChapterText(text) {

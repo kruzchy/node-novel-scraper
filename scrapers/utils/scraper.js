@@ -12,18 +12,28 @@ const fs = require('fs');
 
 module.exports = class Scraper {
     rootDirectory = './data'
+    scraperName = 'default'
     constructor(novelUrl) {
         this.novelUrl = novelUrl;
         this.bar1 = new cliProgress.SingleBar({
             format: 'Downloading {bar} {value}/{total} Chapters'
         }, cliProgress.Presets.shades_classic);
         this.$ = null;
+        this.scraperNamePath = null;
         this.novelName = null;
         this.novelPath = null;
         this.chaptersUrlList = null;
         this.novelNameSelector = null;
         this.chapterTextSelector = null;
         this.chapterTitleSelector = null;
+    }
+
+    createDirectoryIfNotExists(directory) {
+        try {
+            fs.accessSync(directory, fs.constants.F_OK)
+        } catch (e) {
+            fs.mkdirSync(directory)
+        }
     }
 
     showMethodNotOverriddenError() {
@@ -56,9 +66,8 @@ module.exports = class Scraper {
         this.showMethodNotOverriddenError()
     }
 
-    async getProcessedChaptersList(initialChaptersList) {
-        //    Implement in children - return processed chapter links list with announcement etc. chapters removed
-        this.showMethodNotOverriddenError()
+    getProcessedChaptersList(initialChaptersList) {
+        return initialChaptersList;
     }
 
     async getChaptersList() {
@@ -68,22 +77,21 @@ module.exports = class Scraper {
     }
 
     async init() {
+
+        this.createDirectoryIfNotExists(this.rootDirectory)
+        this.scraperNamePath = `${this.rootDirectory}/${this.scraperName}`
+        this.createDirectoryIfNotExists(this.scraperNamePath)
+
         const res = await axios.get(this.novelUrl, this.getNewAxiosConfig()).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
         this.novelName = this.getNovelName();
-        this.novelPath = `${this.rootDirectory}/${this.novelName}`
+        this.novelPath = `${this.rootDirectory}/${this.scraperName}/${this.novelName}`
         this.chaptersUrlList = await this.getChaptersList()
 
-        try {
-            fs.accessSync(this.novelPath, fs.constants.F_OK)
-        } catch (e) {
-            fs.mkdirSync(this.novelPath)
-        }
+        this.createDirectoryIfNotExists(this.novelPath)
     }
 
     processCheerioDOMTree() {
-        //    Implement in children - process the cheerio class property to remove useless tags and elements
-        this.showMethodNotOverriddenError()
     }
 
     processChapterTitle(tempTitle) {
@@ -93,7 +101,7 @@ module.exports = class Scraper {
 
     getTitle() {
         const tempTitle = this.$(this.chapterTitleSelector).text();
-        return sanitize(this.processChapterTitle(tempTitle))
+        return this.processChapterTitle(tempTitle)
     }
 
     processChapterText(text) {
@@ -131,11 +139,7 @@ module.exports = class Scraper {
         const chapterPath = `${this.novelPath}/${title}`
         const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
 
-        try {
-            fs.accessSync(chapterPath, fs.constants.F_OK)
-        } catch (e) {
-            fs.mkdirSync(chapterPath)
-        }
+        this.createDirectoryIfNotExists(chapterPath)
 
         fs.writeFileSync(chapterFilePath, text)
         this.bar1.increment()
