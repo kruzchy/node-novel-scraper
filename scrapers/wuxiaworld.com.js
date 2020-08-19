@@ -86,7 +86,7 @@ module.exports = class WuxiaWorldComScraper {
     }
 
     getTitle() {
-        return sanitize(this.$('#chapter-outer .caption h4').text().replace(/[:.]/, ' -'))
+        return sanitize(this.$('#chapter-outer .caption h4').text().replace(/[:]/, ' -'))
     }
 
     getChaptersList() {

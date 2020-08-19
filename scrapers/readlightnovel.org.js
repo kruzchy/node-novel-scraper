@@ -97,7 +97,7 @@ module.exports = class ReadLightNovelOrgScraper {
         this.titleRegex = new RegExp(`.*${this.escapeRegExp(tempTitle)}.*`, 'i')
         return sanitize(
             tempTitle
-            .replace(/[:.]/, ' -')
+            .replace(/[:]/, ' -')
         ).trim()
     }
 

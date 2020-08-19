@@ -102,7 +102,7 @@ module.exports = class NovelFullScraper {
     getTitle() {
         let title =  this.$('.chapter-text').text();
         this.titleRegex = new RegExp(`.*${this.escapeRegExp(title)}.*`, 'i')
-        title = sanitize(title.replace(/[:.]/g, ' -').replace(/\b(chapter [\d.]+).*\1/i, '$1'))
+        title = sanitize(title.replace(/[:]/g, ' -').replace(/\b(chapter [\d.]+).*\1/i, '$1'))
         return title;
     }
 

@@ -91,7 +91,7 @@ module.exports = class novelTrenchScraper {
         let tempTitle = this.$(this.$('.breadcrumb .active').toArray()[0]).text().trim()
         this.titleRegex = new RegExp(`.*${this.escapeRegExp(tempTitle)}.*`, 'i')
         return sanitize(tempTitle
-            .replace(/[:.]/, ' -'))
+            .replace(/[:]/, ' -'))
             .replace(/^\w/, (c) => c.toUpperCase())
     }
 

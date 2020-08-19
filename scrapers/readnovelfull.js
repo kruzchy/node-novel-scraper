@@ -94,7 +94,7 @@ module.exports = class ReadNovelFullScraper {
         let title = this.$('.chr-text').text()
         this.titleRegex = new RegExp(`.*${this.escapeRegExp(title)}.*`, 'i')
         title = sanitize(title.replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
-            .replace(/[:.]/g, ' -'))
+            .replace(/[:]/g, ' -'))
         return title;
     }
 

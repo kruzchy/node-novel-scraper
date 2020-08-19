@@ -100,7 +100,7 @@ module.exports = class WordexcerptScraper {
     }
 
     getTitle() {
-        return sanitize(this.$('.breadcrumb .active').text().trim().replace(/[:.]/, ' -'))
+        return sanitize(this.$('.breadcrumb .active').text().trim().replace(/[:]/, ' -'))
     }
 
     async getChaptersList() {
