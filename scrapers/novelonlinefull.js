@@ -91,6 +91,10 @@ module.exports = class NovelOnlineFullScraper {
 
     }
 
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
     getTitle() {
         //
         let tempTitle = this.$('.breadcrumb p').children().remove().end().text().trim()
@@ -98,7 +102,7 @@ module.exports = class NovelOnlineFullScraper {
         if (!tempTitle.match(/chapter\s*[\d.]+/i) && tempTitle.match(/^[\d.]+/i)) {
             tempTitle = `Chapter ${tempTitle}`
         }
-        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
+        this.titleRegex = new RegExp(`.*${this.escapeRegExp(tempTitle)}.*`, 'i')
         return sanitize(tempTitle)
     }
 

@@ -86,9 +86,13 @@ module.exports = class ReadNovelFullScraper {
 
     }
 
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
     getTitle() {
         let title = this.$('.chr-text').text()
-        this.titleRegex = new RegExp(`.*${title}.*`, 'i')
+        this.titleRegex = new RegExp(`.*${this.escapeRegExp(title)}.*`, 'i')
         title = sanitize(title.replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
             .replace(/[:.]/g, ' -'))
         return title;

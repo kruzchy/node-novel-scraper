@@ -89,9 +89,13 @@ module.exports = class WebNovelOnlineScraper {
     checkIfExit() {
     }
 
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
     getTitle() {
         let tempTitle = this.$('.chapter-info h3').text().trim();
-        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
+        this.titleRegex = new RegExp(`.*${this.escapeRegExp(tempTitle)}.*`, 'i')
         return sanitize(tempTitle.replace(/\b([\d.]*) (chapter \1)/i, '$2'))
     }
 

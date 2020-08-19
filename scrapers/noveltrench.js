@@ -83,9 +83,13 @@ module.exports = class novelTrenchScraper {
     checkIfExit(text) {
     }
 
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
     getTitle() {
         let tempTitle = this.$(this.$('.breadcrumb .active').toArray()[0]).text().trim()
-        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
+        this.titleRegex = new RegExp(`.*${this.escapeRegExp(tempTitle)}.*`, 'i')
         return sanitize(tempTitle
             .replace(/[:.]/, ' -'))
             .replace(/^\w/, (c) => c.toUpperCase())

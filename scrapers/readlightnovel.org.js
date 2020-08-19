@@ -87,10 +87,14 @@ module.exports = class ReadLightNovelOrgScraper {
     checkIfExit(text) {
     }
 
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
     getTitle(text) {
         // let title = this.$('.block-title h1').children().remove().end().text().split('-')[1].trim()
         let tempTitle = text.match(/chapter [\d.]+/i)[0]
-        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
+        this.titleRegex = new RegExp(`.*${this.escapeRegExp(tempTitle)}.*`, 'i')
         return sanitize(
             tempTitle
             .replace(/[:.]/, ' -')
