@@ -5,16 +5,14 @@ const sanitize = require("sanitize-filename");
 const htmlToText = require('html-to-text');
 const fs = require('fs');
 const cliProgress = require('cli-progress');
-
 const pLimit = require('p-limit');
 const limit = pLimit(16);
 const UserAgent = require('user-agents')
 
 
 const myAxiosInstance = axios.create();
-const userAgent = new UserAgent();
 const getNewAxiosConfig = () => {
-
+    const userAgent = new UserAgent();
     return {
         headers: {
             'User-Agent': userAgent.toString()
@@ -32,22 +30,22 @@ const interceptorId = rax.attach(myAxiosInstance);
 const bar1 = new cliProgress.SingleBar({
     format: 'Downloading {bar} {value}/{total} Chapters'
 }, cliProgress.Presets.shades_classic);
-module.exports = class ReadLightNovelOrgScraper {
+module.exports = class ReadNovelFullScraper {
     constructor(novelUrl) {
         this.rootDirectory = './data'
-        this.novelUrl = novelUrl;
+        this.novelUrl = novelUrl+'#tab-chapters-title';
         this.$ = null;
         this.novelName = null;
         this.novelPath = null;
+        this.baseUrl = 'https://readnovelfull.com'
         this.chaptersUrlList = null;
-        this.bar = null;
         this.titleRegex = null;
 
     }
     async init() {
         const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
-        this.novelName = sanitize(this.$('h1').text().trim());
+        this.novelName = sanitize(this.$(this.$('h3.title').toArray()[0]).text().trim());
         this.novelPath = `${this.rootDirectory}/${this.novelName}`
         try {
             fs.accessSync(this.novelPath, fs.constants.F_OK)
@@ -70,41 +68,37 @@ module.exports = class ReadLightNovelOrgScraper {
         bar1.start(fetchChapterPromises.length, 0)
         await Promise.all(fetchChapterPromises)
         bar1.stop()
-
     }
 
     processHtml() {
-        this.$('.trinity-player-iframe-wrapper, small, small+br, center, center+hr, hr+br,.desc div.hidden').remove()
+
     }
 
     getText(textElement) {
         return htmlToText.fromString(textElement.toString(), {
             wordwrap: null,
             uppercaseHeadings: false
-        }).trim();
+        })
+            .trim();
     }
 
     checkIfExit(text) {
+
     }
 
-    getTitle(text) {
-        // let title = this.$('.block-title h1').children().remove().end().text().split('-')[1].trim()
-        let tempTitle = text.match(/chapter [\d.]+/i)[0]
-        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
-        return sanitize(
-            tempTitle
-                .replace(/[:.]/, ' -')
-        ).trim()
+    getTitle() {
+        let title = this.$('.chr-text').text()
+        this.titleRegex = new RegExp(`.*${title}.*`, 'i')
+        title = sanitize(title.replace(/(chapter.*)chapter.*\.\s/gi, `$1`)
+            .replace(/[:.]/g, ' -'))
+        return title;
     }
 
     async getChaptersList() {
-        let tmpArray = this.$('.chapter-chs li a').toArray().map(item => this.$(item).attr('href'))
-        try {
-            const res = await axios.get(tmpArray[0], getNewAxiosConfig())
-        } catch (e) {
-            tmpArray.shift();
-        }
-        return tmpArray
+        const novelId = this.$('div#rating').attr('data-novel-id')
+        const res = await axios.get(`https://readnovelfull.com/ajax/chapter-archive?novelId=${novelId}`, getNewAxiosConfig())
+        const $ = cheerio.load(res.data);
+        return $('.list-chapter li a').toArray().map(item => this.baseUrl + $(item).attr('href'))
     }
 
     async fetchSingleChapter(chapterUrl) {
@@ -112,11 +106,10 @@ module.exports = class ReadLightNovelOrgScraper {
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
-        this.processHtml()
 
-        const novelTextElement = this.$('.desc');
-        let text = this.getText(novelTextElement);
-        const title = this.getTitle(text);
+        const novelTextElement = this.$('#chr-content')
+        let text = this.getText(novelTextElement)
+        const title = this.getTitle()
 
         !text.match(this.titleRegex) && (this.titleRegex = /^chapter.*/i)
         text = text.replace(this.titleRegex, '<strong>$&</strong>')
@@ -133,7 +126,6 @@ module.exports = class ReadLightNovelOrgScraper {
 
         fs.writeFileSync(chapterFilePath, text)
         bar1.increment()
-        // this.bar.tick();
         // console.log(`>>>Created file "${title}.txt"`)
 
     }
