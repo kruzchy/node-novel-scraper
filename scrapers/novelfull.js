@@ -1,11 +1,12 @@
 const cheerio = require('cheerio');
 const axios = require('axios')
-const {wordExcerptConstant} = require('./utils/scraperConstants')
+const {novelFullConstant} = require('./utils/scraperConstants')
 const Scraper = require('./utils/scraper')
 const sanitize = require("sanitize-filename");
 
-module.exports = class WordexcerptScraper extends Scraper{
-    scraperName = wordExcerptConstant
+module.exports = class NovelFullScraper extends Scraper{
+    scraperName = novelFullConstant;
+    baseUrl = 'https://novelfull.com'
     constructor(novelUrl) {
         super(novelUrl);
         this.novelNameSelector = 'h3.title';
@@ -21,7 +22,7 @@ module.exports = class WordexcerptScraper extends Scraper{
         };
         for (let pageNum=1; pageNum <= lastPageNumber; pageNum++) {
             const url = getPageUrl(pageNum)
-            const res = await axios.get(url, this.getNewAxiosConfig());
+            const res = await axios.get(url, this.getNewAxiosConfig()).catch(e=>console.log(e));
             const $ = cheerio.load(res.data);
             $('.list-chapter li a').toArray().forEach(item => chaptersList.push(this.baseUrl + $(item).attr('href')))
         }
@@ -43,13 +44,17 @@ module.exports = class WordexcerptScraper extends Scraper{
     }
 
     processChapterTitle(tempTitle) {
-        this.titleRegex = new RegExp(`.*${tempTitle}.*`, 'i')
-        return sanitize(tempTitle.replace(/[:.]/, ' -').trim())
+        return sanitize(
+            tempTitle
+                .replace(/[:]/, ' -')
+                .replace(/\b(chapter [\d.]+).*\1/i, '$1')
+                .trim()
+        )
     }
 
     processChapterText(text) {
         return text
-            .replace(/.*wait to read ahead\?(.*|\s|\n)+$/i, '')
+            .replace(/if you find any errors(.|\s)*/i, '')
             .trim()
     }
 }

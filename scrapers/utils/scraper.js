@@ -96,8 +96,7 @@ module.exports = class Scraper {
     }
 
     processChapterTitle(tempTitle) {
-        //    Implement in children - process the Chapter Title and return
-        this.showMethodNotOverriddenError()
+        return sanitize(tempTitle.replace(/[:]/, ' -').trim())
     }
 
     getTitle() {
@@ -118,8 +117,12 @@ module.exports = class Scraper {
         return this.processChapterText(tempText)
     }
 
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
     makeTitleTextBold(text, title) {
-        let titleRegex = new RegExp(`.*${title}.*`, 'i')
+        let titleRegex = new RegExp(`.*${this.escapeRegExp(title)}.*`, 'i')
         !text.match(titleRegex) && (titleRegex = /^chapter.*/i)
         return text
             .replace(titleRegex, '<strong>$&</strong>')
