@@ -27,6 +27,7 @@ module.exports = class Scraper {
         this.chapterTextSelector = null;
         this.chapterTitleSelector = null;
         this.titleRegex = null;
+        this.userAgent = null;
     }
 
     createDirectoryIfNotExists(directory) {
@@ -41,10 +42,10 @@ module.exports = class Scraper {
         throw new Error('You have to implement this method!');
     }
 
-    getNewAxiosConfig() {
+    getNewAxiosConfig(ua=null) {
         const myAxiosInstance = axios.create();
         const interceptorId = rax.attach(myAxiosInstance);
-        const userAgent = new UserAgent();
+        const userAgent = ua?ua:new UserAgent();
         return {
             headers: {
                 'User-Agent': userAgent.toString()
@@ -83,7 +84,7 @@ module.exports = class Scraper {
         this.scraperNamePath = `${this.rootDirectory}/${this.scraperName}`
         this.createDirectoryIfNotExists(this.scraperNamePath)
 
-        const res = await axios.get(this.novelUrl, this.getNewAxiosConfig()).catch(e=>console.error(e));
+        const res = await axios.get(this.novelUrl, this.getNewAxiosConfig(this.userAgent)).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
         this.novelName = this.getNovelName();
         this.novelPath = `${this.rootDirectory}/${this.scraperName}/${this.novelName}`
@@ -129,7 +130,7 @@ module.exports = class Scraper {
     }
 
     async fetchSingleChapter(chapterUrl) {
-        const res =  await axios.get(chapterUrl, this.getNewAxiosConfig()).catch(e=>console.error(e));
+        const res =  await axios.get(chapterUrl, this.getNewAxiosConfig(this.userAgent)).catch(e=>console.error(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
