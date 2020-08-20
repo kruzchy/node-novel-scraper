@@ -110,7 +110,7 @@ module.exports = class Scraper {
         this.showMethodNotOverriddenError()
     }
 
-    getText(textElement) {
+    getText(textElement, htmlData=null) {
         let tempText = htmlToText.fromString(textElement.toString(), {
             wordwrap: null,
             uppercaseHeadings: false
@@ -138,7 +138,7 @@ module.exports = class Scraper {
 
         const novelTextElement = this.$(this.chapterTextSelector);
         const title = this.getTitle();
-        const text = this.makeTitleTextBold(this.getText(novelTextElement), title);
+        const text = this.makeTitleTextBold(this.getText(novelTextElement, htmlData), title);
 
 
         const chapterPath = `${this.novelPath}/${title}`
