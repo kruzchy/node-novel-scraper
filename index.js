@@ -13,6 +13,8 @@ const readNovelFullScraper = require('./scrapers/readnovelfull')
 const wuxiaWorldComScraper = require('./scrapers/future/wuxiaworld.com')
 const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
 const webNovelOnlineScraper = require('./scrapers/webnovelonline')
+const boxNovelScraper = require('./scrapers/boxnovel')
+
 //POST REQUEST CORS FOR PAGINATION
 const readLightNovelsNetScraper = require('./scrapers/future/readlightnovels.net')
 //CLOUDFARE. SCRAPING IS HARD
@@ -39,6 +41,7 @@ class App {
             [scraperConstants.novelFullConstant]: novelFullScraper,
             [scraperConstants.novelOnlineFullConstant]: novelOnlineFullScraper,
             [scraperConstants.readNovelFullConstant]: readNovelFullScraper,
+            [scraperConstants.boxNovelComConstant]: boxNovelScraper,
         }
         this.scrapersFuture = {
             [scraperConstants.wuxiaWorldSiteConstant]: wuxiaWorldSiteScraper,

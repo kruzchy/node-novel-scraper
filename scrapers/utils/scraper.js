@@ -63,7 +63,7 @@ module.exports = class Scraper {
         return sanitize(this.$(this.novelNameSelector).text().trim())
     }
 
-    getChapterLinks() {
+    async getChapterLinks() {
         //    Implement in children - return initial list of chapter links
         this.showMethodNotOverriddenError()
     }

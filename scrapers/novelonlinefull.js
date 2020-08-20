@@ -15,10 +15,6 @@ module.exports = class NovelOnlineFullScraper extends Scraper{
         return this.$('.chapter-list a').toArray().map(item => this.$(item).attr('href'))
     }
 
-    escapeRegExp(string) {
-        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
-    }
-
     getTitle() {
         let tempTitle = this.$(this.chapterTitleSelector).children().remove().end().text().trim()
         if (!tempTitle.match(/chapter\s*[\d.]+/i) && tempTitle.match(/^[\d.]+/i)) {

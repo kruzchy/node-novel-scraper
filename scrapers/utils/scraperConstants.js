@@ -10,4 +10,5 @@ module.exports = {
     wuxiaWorldSiteConstant: 'wuxiaworld.site',
     readLightNovelsNetConstant: 'readlightnovels.net',
     lightNovelWorldConstant: 'lightnovelworld.com',
+    boxNovelComConstant: 'boxnovel.com',
 }
