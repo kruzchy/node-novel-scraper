@@ -1,86 +1,18 @@
-const cheerio = require('cheerio');
-const axios = require('axios')
-const rax = require('retry-axios');
+const {novelTrenchConstant} = require('./utils/scraperConstants')
+const Scraper = require('./utils/scraper')
 const sanitize = require("sanitize-filename");
-const htmlToText = require('html-to-text');
-const fs = require('fs');
-const cliProgress = require('cli-progress');
 
-const pLimit = require('p-limit');
-const limit = pLimit(16);
-const UserAgent = require('user-agents')
-
-
-const myAxiosInstance = axios.create();
-const getNewAxiosConfig = () => {
-    const userAgent = new UserAgent();
-    return {
-        headers: {
-            'User-Agent': userAgent.toString()
-        },
-        raxConfig: {
-            noResponseRetries: 5,
-            retry: 5,
-            retryDelay: 100,
-            instance: myAxiosInstance,
-        }
-    }
-};
-const interceptorId = rax.attach(myAxiosInstance);
-
-const bar1 = new cliProgress.SingleBar({
-    format: 'Downloading {bar} {value}/{total} Chapters'
-}, cliProgress.Presets.shades_classic);
-module.exports = class novelTrenchScraper {
+module.exports = class novelTrenchScraper extends Scraper{
+    scraperName = novelTrenchConstant
     constructor(novelUrl) {
-        this.rootDirectory = './data'
-        this.novelUrl = novelUrl;
-        this.$ = null;
-        this.novelName = null;
-        this.novelPath = null;
-        this.chaptersUrlList = null;
-        this.titleRegex = null;
-
-    }
-    async init() {
-        const res = await axios.get(this.novelUrl, getNewAxiosConfig()).catch(e=>console.error(e));
-        this.$ = cheerio.load(res.data);
-        this.novelName = sanitize(this.$('h1').text().trim());
-        this.novelPath = `${this.rootDirectory}/${this.novelName}`
-        try {
-            fs.accessSync(this.novelPath, fs.constants.F_OK)
-        } catch (e) {
-            fs.mkdirSync(this.novelPath)
-        }
-        this.chaptersUrlList = this.getChaptersList()
-    }
-    async fetchChapters() {
-        console.log('>>>Fetching chapters')
-        const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>limit(
-            ()=>this.fetchSingleChapter(chapterUrl)
-                .catch(
-                    (err)=> {
-                        console.log(`\n***Error at URL: ${chapterUrl}`)
-                        console.error(err)
-                    }
-                )
-        ))
-        bar1.start(fetchChapterPromises.length, 0)
-        await Promise.all(fetchChapterPromises)
-        bar1.stop()
+        super(novelUrl);
+        this.novelNameSelector = 'h1';
+        this.chapterTextSelector = '.text-left';
+        this.chapterTitleSelector = '.breadcrumb .active';
     }
 
-    processHtml() {
-    }
-
-    getText(textElement) {
-        return htmlToText.fromString(textElement.toString(), {
-            wordwrap: null,
-            uppercaseHeadings: false
-        });
-    }
-
-    checkIfExit(text) {
+    async getChapterLinks() {
+        return  this.$('.wp-manga-chapter a').toArray().map(item => this.$(item).attr('href'));
     }
 
     escapeRegExp(string) {
@@ -88,44 +20,21 @@ module.exports = class novelTrenchScraper {
     }
 
     getTitle() {
-        let tempTitle = this.$(this.$('.breadcrumb .active').toArray()[0]).text().trim()
-        this.titleRegex = new RegExp(`.*${this.escapeRegExp(tempTitle)}.*`, 'i')
-        return sanitize(tempTitle
-            .replace(/[:]/, ' -'))
-            .replace(/^\w/, (c) => c.toUpperCase())
+        let tempTitle = this.$(this.$(this.chapterTitleSelector).toArray()[0]).text().trim()
+        return this.processChapterTitle(tempTitle)
     }
 
-    getChaptersList() {
-        return this.$('.wp-manga-chapter a').toArray().map(item => this.$(item).attr('href'))
+    processChapterTitle(tempTitle) {
+        return sanitize(
+            tempTitle
+                .replace(/[:]/, ' -')
+                .replace(/^\w/, (c) => c.toUpperCase())
+                .trim()
+        )
     }
 
-    async fetchSingleChapter(chapterUrl) {
-        const res =  await axios.get(chapterUrl, getNewAxiosConfig()).catch(e=>console.log(e));
-        const htmlData = res.data;
-        this.$ = cheerio.load(htmlData);
-
-
-
-        const novelTextElement = this.$('.text-left')
-        let text = this.getText(novelTextElement)
-        const title = this.getTitle()
-
-        !text.match(this.titleRegex) && (this.titleRegex = /^chapter.*/i)
-        text = text.replace(this.titleRegex, '<strong>$&</strong>')
-
-        const chapterPath = `${this.novelPath}/${title}`
-        const chapterFilePath = `${this.novelPath}/${title}/${title}.txt`
-
-
-        try {
-            fs.accessSync(chapterPath, fs.constants.F_OK)
-        } catch (e) {
-            fs.mkdirSync(chapterPath)
-        }
-        fs.writeFileSync(chapterFilePath, text)
-        bar1.increment()
-        // console.log(`>>>Created file "${title}.txt"`)
-
+    processChapterText(text) {
+        return text
+            .trim()
     }
-
 }

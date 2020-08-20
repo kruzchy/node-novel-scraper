@@ -4,13 +4,13 @@ const htmlToText = require('html-to-text');
 const { prompt } = require('enquirer');
 const fs = require('fs');
 const url = require('url');
-
+const scraperConstants = require('./scrapers/utils/scraperConstants');
 const wordExcerptScraper = require('./scrapers/wordexcerpt')
 const novelTrenchScraper = require('./scrapers/noveltrench')
 const novelFullScraper = require('./scrapers/novelfull')
 const novelOnlineFullScraper = require('./scrapers/novelonlinefull')
 const readNovelFullScraper = require('./scrapers/readnovelfull')
-const wuxiaWorldComScraper = require('./scrapers/wuxiaworld.com')
+const wuxiaWorldComScraper = require('./scrapers/future/wuxiaworld.com')
 const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
 const webNovelOnlineScraper = require('./scrapers/webnovelonline')
 //POST REQUEST CORS FOR PAGINATION
@@ -31,19 +31,19 @@ class App {
         this.scraper = null;
         this.novelUrl = novelUrl;
         this.scrapers = {
-            'wordexcerpt.com': wordExcerptScraper,
-            'noveltrench.com': novelTrenchScraper,
-            'wuxiaworld.com': wuxiaWorldComScraper,
-            'readlightnovel.org': readLightNovelOrgScraper,
-            'webnovelonline.com': webNovelOnlineScraper,
-            'novelfull.com': novelFullScraper,
-            'novelonlinefull.com': novelOnlineFullScraper,
-            'readnovelfull.com': readNovelFullScraper,
+            [scraperConstants.wordExcerptConstant]: wordExcerptScraper,
+            [scraperConstants.novelTrenchConstant]: novelTrenchScraper,
+            [scraperConstants.wuxiaWorldComConstant]: wuxiaWorldComScraper,
+            [scraperConstants.readLightNovelOrgConstant]: readLightNovelOrgScraper,
+            [scraperConstants.webNovelOnlineConstant]: webNovelOnlineScraper,
+            [scraperConstants.novelFullConstant]: novelFullScraper,
+            [scraperConstants.novelOnlineFullConstant]: novelOnlineFullScraper,
+            [scraperConstants.readNovelFullConstant]: readNovelFullScraper,
         }
         this.scrapersFuture = {
-            'wuxiaworld.site': wuxiaWorldSiteScraper,
-            'readlightnovels.net': readLightNovelsNetScraper,
-            'lightnovelworld.com': lightNovelWorldScraper,
+            [scraperConstants.wuxiaWorldSiteConstant]: wuxiaWorldSiteScraper,
+            [scraperConstants.readLightNovelsNetConstant]: readLightNovelsNetScraper,
+            [scraperConstants.lightNovelWorldConstant]: lightNovelWorldScraper,
         }
         this.scraper = this.initScraper()
     }

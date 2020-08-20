@@ -27,6 +27,7 @@ module.exports = class Scraper {
         this.chapterTextSelector = null;
         this.chapterTitleSelector = null;
         this.titleRegex = null;
+        this.userAgent = null;
     }
 
     createDirectoryIfNotExists(directory) {
@@ -41,10 +42,10 @@ module.exports = class Scraper {
         throw new Error('You have to implement this method!');
     }
 
-    getNewAxiosConfig() {
+    getNewAxiosConfig(ua=null) {
         const myAxiosInstance = axios.create();
         const interceptorId = rax.attach(myAxiosInstance);
-        const userAgent = new UserAgent();
+        const userAgent = ua?ua:new UserAgent();
         return {
             headers: {
                 'User-Agent': userAgent.toString()
@@ -73,7 +74,7 @@ module.exports = class Scraper {
 
     async getChaptersList() {
         console.log('>>>Fetching Chapters')
-        let initialChaptersList = this.getChapterLinks()
+        let initialChaptersList = await this.getChapterLinks()
         return await this.getProcessedChaptersList(initialChaptersList)
     }
 
@@ -83,7 +84,7 @@ module.exports = class Scraper {
         this.scraperNamePath = `${this.rootDirectory}/${this.scraperName}`
         this.createDirectoryIfNotExists(this.scraperNamePath)
 
-        const res = await axios.get(this.novelUrl, this.getNewAxiosConfig()).catch(e=>console.error(e));
+        const res = await axios.get(this.novelUrl, this.getNewAxiosConfig(this.userAgent)).catch(e=>console.error(e));
         this.$ = cheerio.load(res.data);
         this.novelName = this.getNovelName();
         this.novelPath = `${this.rootDirectory}/${this.scraperName}/${this.novelName}`
@@ -96,8 +97,7 @@ module.exports = class Scraper {
     }
 
     processChapterTitle(tempTitle) {
-        //    Implement in children - process the Chapter Title and return
-        this.showMethodNotOverriddenError()
+        return sanitize(tempTitle.replace(/[:]/, ' -').trim())
     }
 
     getTitle() {
@@ -110,7 +110,7 @@ module.exports = class Scraper {
         this.showMethodNotOverriddenError()
     }
 
-    getText(textElement) {
+    getText(textElement, htmlData=null) {
         let tempText = htmlToText.fromString(textElement.toString(), {
             wordwrap: null,
             uppercaseHeadings: false
@@ -118,15 +118,19 @@ module.exports = class Scraper {
         return this.processChapterText(tempText)
     }
 
+    escapeRegExp(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+    }
+
     makeTitleTextBold(text, title) {
-        let titleRegex = new RegExp(`.*${title}.*`, 'i')
+        let titleRegex = new RegExp(`.*${this.escapeRegExp(title)}.*`, 'i')
         !text.match(titleRegex) && (titleRegex = /^chapter.*/i)
         return text
             .replace(titleRegex, '<strong>$&</strong>')
     }
 
     async fetchSingleChapter(chapterUrl) {
-        const res =  await axios.get(chapterUrl, this.getNewAxiosConfig()).catch(e=>console.error(e));
+        const res =  await axios.get(chapterUrl, this.getNewAxiosConfig(this.userAgent)).catch(e=>console.error(e));
         const htmlData = res.data;
         this.$ = cheerio.load(htmlData);
 
@@ -134,7 +138,7 @@ module.exports = class Scraper {
 
         const novelTextElement = this.$(this.chapterTextSelector);
         const title = this.getTitle();
-        const text = this.makeTitleTextBold(this.getText(novelTextElement), title);
+        const text = this.makeTitleTextBold(this.getText(novelTextElement, htmlData), title);
 
 
         const chapterPath = `${this.novelPath}/${title}`
