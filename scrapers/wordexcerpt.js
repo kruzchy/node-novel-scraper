@@ -13,7 +13,7 @@ module.exports = class WordexcerptScraper extends Scraper{
         this.chapterTitleSelector = '.breadcrumb .active';
     }
 
-    getChapterLinks() {
+    async getChapterLinks() {
         return  this.$('.wp-manga-chapter a').toArray().map(item => this.$(item).attr('href'));
     }
 

@@ -22,19 +22,6 @@ module.exports = class ReadNovelFullScraper extends Scraper{
     }
 
 
-    async getProcessedChaptersList(initialChaptersList) {
-        return initialChaptersList;
-    }
-
-    async getChaptersList() {
-        console.log('>>>Fetching Chapters')
-        let initialChaptersList = await this.getChapterLinks()
-        return await this.getProcessedChaptersList(initialChaptersList)
-    }
-
-    processCheerioDOMTree() {
-    }
-
     processChapterTitle(tempTitle) {
         return sanitize(
             tempTitle

@@ -74,7 +74,7 @@ module.exports = class Scraper {
 
     async getChaptersList() {
         console.log('>>>Fetching Chapters')
-        let initialChaptersList = this.getChapterLinks()
+        let initialChaptersList = await this.getChapterLinks()
         return await this.getProcessedChaptersList(initialChaptersList)
     }
 

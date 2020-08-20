@@ -1,5 +1,3 @@
-const cheerio = require('cheerio');
-const axios = require('axios')
 const {novelOnlineFullConstant} = require('./utils/scraperConstants')
 const Scraper = require('./utils/scraper')
 const sanitize = require("sanitize-filename");
@@ -13,12 +11,8 @@ module.exports = class NovelOnlineFullScraper extends Scraper{
         this.chapterTitleSelector = '.breadcrumb p';
     }
 
-    getChapterLinks() {
+    async getChapterLinks() {
         return this.$('.chapter-list a').toArray().map(item => this.$(item).attr('href'))
-    }
-
-    async getProcessedChaptersList(initialChaptersList) {
-        return initialChaptersList;
     }
 
     getTitle() {

@@ -1,4 +1,3 @@
-const cheerio = require('cheerio');
 const axios = require('axios')
 const {readLightNovelOrgConstant} = require('./utils/scraperConstants')
 const Scraper = require('./utils/scraper')
@@ -22,7 +21,7 @@ module.exports = class ReadLightNovelOrgScraper extends Scraper{
         return this.processChapterTitle(tempTitle)
     }
 
-    getChapterLinks() {
+    async getChapterLinks() {
         return  this.$('.chapter-chs li a').toArray().map(item => this.$(item).attr('href'))
     }
 

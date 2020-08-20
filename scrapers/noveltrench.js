@@ -1,5 +1,3 @@
-const cheerio = require('cheerio');
-const axios = require('axios')
 const {novelTrenchConstant} = require('./utils/scraperConstants')
 const Scraper = require('./utils/scraper')
 const sanitize = require("sanitize-filename");
@@ -13,14 +11,9 @@ module.exports = class novelTrenchScraper extends Scraper{
         this.chapterTitleSelector = '.breadcrumb .active';
     }
 
-    getChapterLinks() {
+    async getChapterLinks() {
         return  this.$('.wp-manga-chapter a').toArray().map(item => this.$(item).attr('href'));
     }
-
-    async getProcessedChaptersList(initialChaptersList) {
-        return initialChaptersList;
-    }
-
 
     getTitle() {
         let tempTitle = this.$(this.$(this.chapterTitleSelector).toArray()[0]).text().trim()

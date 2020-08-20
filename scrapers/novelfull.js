@@ -29,15 +29,8 @@ module.exports = class NovelFullScraper extends Scraper{
         return chaptersList;
     }
 
-
     async getProcessedChaptersList(initialChaptersList) {
         return initialChaptersList;
-    }
-
-    async getChaptersList() {
-        console.log('>>>Fetching Chapters')
-        let initialChaptersList = await this.getChapterLinks()
-        return await this.getProcessedChaptersList(initialChaptersList)
     }
 
     processCheerioDOMTree() {
