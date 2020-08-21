@@ -14,6 +14,10 @@ module.exports = class NovelFullScraper extends Scraper{
         this.chapterTitleSelector = '.chapter-text';
     }
 
+    getNovelName() {
+        return sanitize(this.$(this.$(this.novelNameSelector).toArray()[0]).text().trim());
+    }
+
     async getChapterLinks() {
         const chaptersList = [];
         const lastPageNumber = this.$('.last a').attr('href').split('?page=')[1].split('&')[0]
@@ -31,9 +35,6 @@ module.exports = class NovelFullScraper extends Scraper{
 
     async getProcessedChaptersList(initialChaptersList) {
         return initialChaptersList;
-    }
-
-    processCheerioDOMTree() {
     }
 
     processChapterTitle(tempTitle) {

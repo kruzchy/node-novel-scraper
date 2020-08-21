@@ -33,7 +33,7 @@ module.exports = class WordexcerptScraper extends Scraper{
     }
 
     processChapterTitle(tempTitle) {
-        return sanitize(tempTitle.replace(/[:.]/, ' -').trim())
+        return sanitize(tempTitle.replace(/[:]/, ' -').trim())
     }
 
     processChapterText(text) {

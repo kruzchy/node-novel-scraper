@@ -2,7 +2,6 @@ const UserAgent = require('user-agents')
 const axios = require('axios')
 const rax = require('retry-axios');
 const pLimit = require('p-limit');
-const limit = pLimit(16);
 const cliProgress = require('cli-progress');
 const cheerio = require('cheerio');
 const sanitize = require("sanitize-filename");
@@ -28,6 +27,8 @@ module.exports = class Scraper {
         this.chapterTitleSelector = null;
         this.titleRegex = null;
         this.userAgent = null;
+        this.limitNum = null;
+        this.limit = pLimit(16);
     }
 
     createDirectoryIfNotExists(directory) {
@@ -79,7 +80,7 @@ module.exports = class Scraper {
     }
 
     async init() {
-
+        this.limit = this.limitNum ? pLimit(this.limitNum) : this.limit
         this.createDirectoryIfNotExists(this.rootDirectory)
         this.scraperNamePath = `${this.rootDirectory}/${this.scraperName}`
         this.createDirectoryIfNotExists(this.scraperNamePath)
@@ -151,7 +152,7 @@ module.exports = class Scraper {
     }
 
     async fetchChapters() {
-        const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>limit(
+        const fetchChapterPromises = this.chaptersUrlList.map(chapterUrl=>this.limit(
             ()=>this.fetchSingleChapter(chapterUrl)
                 .catch(
                     (err)=> {

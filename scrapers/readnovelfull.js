@@ -14,6 +14,10 @@ module.exports = class ReadNovelFullScraper extends Scraper{
         this.chapterTitleSelector = '.chr-text';
     }
 
+    getNovelName() {
+        return sanitize(this.$(this.$(this.novelNameSelector).toArray()[0]).text().trim());
+    }
+
     async getChapterLinks() {
         const novelId = this.$('div#rating').attr('data-novel-id')
         const res = await axios.get(`https://readnovelfull.com/ajax/chapter-archive?novelId=${novelId}`, this.getNewAxiosConfig())

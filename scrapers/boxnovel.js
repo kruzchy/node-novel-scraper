@@ -10,7 +10,8 @@ module.exports = class BoxNovelScraper extends Scraper{
         super(novelUrl);
         this.novelNameSelector = 'h3';
         this.chapterTextSelector = '.text-left';
-        this.chapterTitleSelector = '.text-left h3';
+        this.chapterTitleSelector = '.text-left>p:first-child, .text-left>h2, .text-left>h3, .text-left>h4' ;
+        this.limitNum = 32;
     }
 
     getNovelName() {
@@ -21,8 +22,18 @@ module.exports = class BoxNovelScraper extends Scraper{
         return  this.$('.wp-manga-chapter a').toArray().map(item => this.$(item).attr('href'));
     }
 
+    // getTitle() {
+    //     let tempTitle = this.$(this.chapterTitleSelector).text();
+    //     return this.processChapterTitle(tempTitle)
+    // }
+
     processChapterTitle(tempTitle) {
-        return sanitize(tempTitle.replace(/[:.]/, ' -').trim())
+        return sanitize(
+            tempTitle
+                .replace(/[:]/, ' -')
+                .replace(/^(?!Chapter)([\d.]+)(.*)/, 'Chapter $1 - $2')
+                .trim()
+        )
     }
 
     processChapterText(text) {
