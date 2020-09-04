@@ -29,6 +29,7 @@ module.exports = class Scraper {
         this.userAgent = null;
         this.limitNum = null;
         this.limit = pLimit(16);
+        this.duplicateFiles = {}
     }
 
     createDirectoryIfNotExists(directory) {
