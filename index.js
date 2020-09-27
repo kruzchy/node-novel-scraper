@@ -10,17 +10,10 @@ const novelTrenchScraper = require('./scrapers/noveltrench')
 const novelFullScraper = require('./scrapers/novelfull')
 const novelOnlineFullScraper = require('./scrapers/novelonlinefull')
 const readNovelFullScraper = require('./scrapers/readnovelfull')
-const wuxiaWorldComScraper = require('./scrapers/future/wuxiaworld.com')
 const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
 const webNovelOnlineScraper = require('./scrapers/webnovelonline')
 const boxNovelScraper = require('./scrapers/boxnovel')
 
-//POST REQUEST CORS FOR PAGINATION
-const readLightNovelsNetScraper = require('./scrapers/future/readlightnovels.net')
-//CLOUDFARE. SCRAPING IS HARD
-const wuxiaWorldSiteScraper = require('./scrapers/future/wuxiaworld.site')
-//Rate limited only 15 requests per minute
-const lightNovelWorldScraper = require('./scrapers/future/lightnovelworld')
 
 try {
     fs.accessSync('./data', fs.constants.F_OK)
@@ -35,18 +28,12 @@ class App {
         this.scrapers = {
             [scraperConstants.wordExcerptConstant]: wordExcerptScraper,
             [scraperConstants.novelTrenchConstant]: novelTrenchScraper,
-            [scraperConstants.wuxiaWorldComConstant]: wuxiaWorldComScraper,
             [scraperConstants.readLightNovelOrgConstant]: readLightNovelOrgScraper,
             [scraperConstants.webNovelOnlineConstant]: webNovelOnlineScraper,
             [scraperConstants.novelFullConstant]: novelFullScraper,
             [scraperConstants.novelOnlineFullConstant]: novelOnlineFullScraper,
             [scraperConstants.readNovelFullConstant]: readNovelFullScraper,
             [scraperConstants.boxNovelComConstant]: boxNovelScraper,
-        }
-        this.scrapersFuture = {
-            [scraperConstants.wuxiaWorldSiteConstant]: wuxiaWorldSiteScraper,
-            [scraperConstants.readLightNovelsNetConstant]: readLightNovelsNetScraper,
-            [scraperConstants.lightNovelWorldConstant]: lightNovelWorldScraper,
         }
         this.scraper = this.initScraper()
     }
@@ -76,3 +63,4 @@ const start = async () => {
     console.log('>>>Download complete!')
 };
 start();
+
