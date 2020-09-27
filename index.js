@@ -13,6 +13,7 @@ const readNovelFullScraper = require('./scrapers/readnovelfull')
 const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
 const webNovelOnlineScraper = require('./scrapers/webnovelonline')
 const boxNovelScraper = require('./scrapers/boxnovel')
+const woopReadScraper = require('./scrapers/woopread')
 
 
 try {
@@ -34,6 +35,7 @@ class App {
             [scraperConstants.novelOnlineFullConstant]: novelOnlineFullScraper,
             [scraperConstants.readNovelFullConstant]: readNovelFullScraper,
             [scraperConstants.boxNovelComConstant]: boxNovelScraper,
+            [scraperConstants.woopReadComConstant]: woopReadScraper,
         }
         this.scraper = this.initScraper()
     }
@@ -59,8 +61,13 @@ const start = async () => {
     });
     const app = new App(response.novelUrl)
     await app.scraper.init();
+    const timeStart = new Date();
     await app.scraper.fetchChapters();
-    console.log('>>>Download complete!')
+    const timeEnd = new Date();
+    console.log('>>>Download complete!');
+    const execMins = Math.trunc((timeEnd-timeStart)/60000);
+    const execSecs = Math.round(((timeEnd-timeStart) - execMins*60000)/1000);
+    console.log(`>>>Time elapsed: ${execMins}m${execSecs}s`)
 };
 start();
 
