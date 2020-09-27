@@ -12,4 +12,5 @@ module.exports = {
     lightNovelWorldConstant: 'lightnovelworld.com',
     boxNovelComConstant: 'boxnovel.com',
     woopReadComConstant: 'woopread.com',
+    centinniConstant: 'centinni.com',
 }

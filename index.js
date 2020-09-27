@@ -14,6 +14,7 @@ const readLightNovelOrgScraper = require('./scrapers/readlightnovel.org')
 const webNovelOnlineScraper = require('./scrapers/webnovelonline')
 const boxNovelScraper = require('./scrapers/boxnovel')
 const woopReadScraper = require('./scrapers/woopread')
+const centinniScraper = require('./scrapers/centinni')
 
 
 try {
@@ -36,6 +37,7 @@ class App {
             [scraperConstants.readNovelFullConstant]: readNovelFullScraper,
             [scraperConstants.boxNovelComConstant]: boxNovelScraper,
             [scraperConstants.woopReadComConstant]: woopReadScraper,
+            [scraperConstants.centinniConstant]: centinniScraper,
         }
         this.scraper = this.initScraper()
     }
