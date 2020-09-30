@@ -28,7 +28,7 @@ module.exports = class CentinniScraper extends Scraper{
 
     processChapterText(text) {
         return text
-            .replace(/.*wait to read ahead\?(.*|\s|\n)+$/i, '')
+            .replace(/Centinni is translating[\S+\n\r\s]+/i, '')
             .trim()
     }
 }
