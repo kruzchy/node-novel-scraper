@@ -22,6 +22,11 @@ module.exports = class CentinniScraper extends Scraper{
         this.$('img').remove()
     }
 
+    getTitle() {
+        let tempTitle = this.$(this.$(this.chapterTitleSelector).toArray()[0]).text().trim()
+        return this.processChapterTitle(tempTitle)
+    }
+
     processChapterTitle(tempTitle) {
         return sanitize(tempTitle.replace(/[:]/, ' -').trim())
     }
@@ -29,6 +34,7 @@ module.exports = class CentinniScraper extends Scraper{
     processChapterText(text) {
         return text
             .replace(/Centinni is translating[\S+\n\r\s]+/i, '')
+            .replace(/.*centinni.*/ig, '')
             .trim()
     }
 }
