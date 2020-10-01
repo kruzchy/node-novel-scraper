@@ -34,7 +34,7 @@ module.exports = class CentinniScraper extends Scraper{
     processChapterText(text) {
         return text
             .replace(/Centinni is translating[\S+\n\r\s]+/i, '')
-            .replace(/.*centinni.*/ig, '')
+            .replace(/.*((centinni)|(paypal)|(discord)|(patreon)|(ko-?fi)).*/ig, '')
             .trim()
     }
 }
