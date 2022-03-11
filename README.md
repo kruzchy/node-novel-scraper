@@ -1,6 +1,5 @@
 # novel-scraper
-A Novel Scraper written in Node.js with 6+ sites support.
-For academic purposes(Exploring the structure of scrapers). Not to be used to do anything illegal. Definitely do not bomb the sites with tons of requests.
+A Novel Scraper written in Node.js.
 ## Supported Sites
 * boxnovel
 * novelfull
